@@ -2,7 +2,13 @@ import { fetchCatalog, fallbackModels } from "../src/catalog.mjs";
 import { readAuthDocument } from "../src/credentials.mjs";
 import { formatDuration, maskToken, tokenClaims } from "../src/util.mjs";
 import { verifySessionToken } from "../src/auth.mjs";
-import { fetchBalance, normalizeBalance, parseCreditBreakdown, fetchQuotaUsage } from "../src/usage.mjs";
+import {
+  fetchBalance,
+  fetchUserWallets,
+  normalizeBalance,
+  parseCreditBreakdown,
+  fetchQuotaUsage,
+} from "../src/usage.mjs";
 import { GATEWAY } from "../src/constants.mjs";
 
 const argv = process.argv.slice(2);
@@ -85,6 +91,20 @@ if (argv.includes("--live")) {
       console.log(
         `  live breakdown: ${breakdown ? "bucketed (daily/monthly/other)" : "single pool"}`,
       );
+      const wallets = await fetchUserWallets(found.state.token, {});
+      if (wallets.ok) {
+        for (const [name, bucket] of Object.entries(wallets.buckets)) {
+          if (!bucket) continue;
+          const expiry = bucket.validTo
+            ? new Date(bucket.validTo).toISOString()
+            : "no expiry";
+          console.log(
+            `  live wallet ${name}: ${bucket.balance} credits (expires ${expiry})`,
+          );
+        }
+      } else {
+        console.log("  live wallet: not served for this account");
+      }
       const catalog = await fetchCatalog(GATEWAY, found.state.token, {});
       console.log(
         `  live catalog: ${catalog.models.length} models (${catalog.models.filter((m) => m.format === "anthropic/messages").length} anthropic)`,

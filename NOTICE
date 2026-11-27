@@ -4,7 +4,8 @@ Copyright (c) 2026 magpie-qwenwork contributors
 ## Interoperability
 
 The plugin interoperates with the user's own locally installed QwenWork desktop account and the
-public HTTP API at gateway.qwenwork.ai and the minted MaaS upstream. No QwenWork source code or
+public HTTP API at gateway.qwenwork.ai, qwenwork.ai (the web user-service serving the credit
+wallet buckets) and the minted MaaS upstream. No QwenWork source code or
 assets are included in this repository. The plugin is read-only on QwenWork data: it never writes
 auth-v2.dat, Local State or any other app file, and it never calls the refresh-token flow.
 

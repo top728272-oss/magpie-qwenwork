@@ -3,7 +3,7 @@
 一个 magpie provider 插件，把 **QwenWork** 桌面端订阅模型以 `qwenwork/<model>` 的形式提供给每个
 agent。插件读取本机已登录的 QwenWork 桌面账号，向网关铸造 MaaS 访问密钥，并按模型自动选择端点。
 
-> 状态：v0.2.0。107 个离线测试在 node 20/22/24 和 bun 上全部通过。2026-11-27 的实机验证覆盖了凭据
+> 状态：v0.3.0。110 个离线测试在 node 20/22/24 和 bun 上全部通过。2026-11-27 的实机验证覆盖了凭据
 > 读取、密钥铸造、流式对话、工具调用、Anthropic Messages、额度卡片和每日签到钩子。
 
 ## 模型
@@ -61,15 +61,16 @@ Free/国际区状态，会按会话缓存，不再重试）、`failed`（服务�
 3. **模型调用**：`{base_url}/v1/chat/completions` 与 `{base_url}/v1/messages`。loader 始终用当前
    铸造结果重建 URL（绝不信任传入的主机名），注入 `Authorization: Bearer`；收到 401 时重新铸造并
    重试一次，仍失败则给响应标记 `X-Magpie-Sign-In: expired`。
-4. **额度**：卡片合并四个网关来源（各一次请求，缓存 60 秒）：`GET /api/v1/adapter/user/balance`
-   （精确余量）、`GET /api/v2/quota/usage`（可选的每日/每月/附加积分分桶，解析 `daily_quota` 类
-   字段，部署提供时才有）、`GET /api/v1/adapter/user/wallets`（可选的每日/每月/长期钱包桶；尝试
-   一次，404 后缓存并跳过）和 `GET /api/v1/adapter/user/account-context`（套餐名、刷新日期、回退
-   池）。有分桶的套餐会得到带过期时间的窗口（`每日 60/100（每天 +5）`、`套餐 400/500`、`附加额度
-   剩 7`）；实测的 Free/国际区状态降级为单个 `剩 699.97 积分` 池，外加仅展示的密钥有效期窗口。
+4. **额度**：卡片合并五个来源（各一次请求，缓存 60 秒）：`GET /api/v1/adapter/user/balance`（网关
+   精确余量）、`GET /api/v2/quota/usage`（可选的每日/每月/附加积分分桶，解析 `daily_quota` 类字段，
+   部署提供时才有）、`qwenwork.ai` 上的 `GET /user/v2/wallets`（网页版用户服务：真实的每笔积分桶，
+   带 `valid_from`/`valid_to` 有效期；失败时回退到 `/user/wallets` 汇总；永久失败后跳过）和
+   `GET /api/v1/adapter/user/account-context`（套餐名、刷新日期、回退池）。有分桶的积分会得到带
+   过期时间的窗口（`每日 199.95 积分`，重置时间取钱包的 `valid_to`；`套餐`；`附加额度`），总池
+   始终显示为 `剩 699.95 积分`，外加仅展示的密钥有效期窗口。
 
-凭据只会发往 `gateway.qwenwork.ai` 和铸造返回的 `base_url`；令牌永不入日志（以 sha256 前缀 +
-长度掩码）；所有请求使用 `redirect: "error"`。
+凭据只会发往 `gateway.qwenwork.ai`、铸造返回的 `base_url` 和 `qwenwork.ai`（提供积分钱包桶的
+网页版用户服务）；令牌永不入日志（以 sha256 前缀 + 长度掩码）；所有请求使用 `redirect: "error"`。
 
 ## 配置
 

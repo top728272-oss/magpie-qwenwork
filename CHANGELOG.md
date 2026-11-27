@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 - 2026-11-27
+
+### Added
+
+- Real credit-bucket windows: the wallet buckets (daily refreshed credits, sign-up/longterm
+  credits, monthly) now come from the web user-service at qwenwork.ai —
+  GET /user/v2/wallets?lifecycle=active with per-credit valid_from/valid_to, falling back to
+  GET /user/wallets totals. The card now shows expiring Daily and Add-on windows with the real
+  reset dates the website displays, on top of the always-present pool window. qwenwork.ai joins
+  the allowed host list (wallet endpoints only).
+
 ## 0.2.0 - 2026-11-27
 
 ### Added

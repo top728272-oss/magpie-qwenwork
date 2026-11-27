@@ -40,9 +40,18 @@ function serveAll({
         add_on_quota: null,
         expires_at: 0,
       });
-    if (url.endsWith("/api/v1/adapter/user/wallets")) {
+    if (url.includes("/user/v2/wallets")) {
       if (wallets === null) return new Response("", { status: 404 });
-      return jsonResponse(wallets);
+      return jsonResponse({
+        code: "ok",
+        data: {
+          lifecycle: "active",
+          items: [
+            { credit_name: "trial_credits", period_type: "daily_credits", source: "daily_refresh", balance: "199.952", valid_from: "2026-11-27T16:00:00Z", valid_to: "2026-11-28T16:00:00.000Z" },
+            { credit_name: "trial_credits", period_type: "longterm_credits", source: "user_registration", balance: "500", valid_from: "2026-11-25T11:20:29.82Z", valid_to: "2027-02-25T11:20:29.82Z" },
+          ],
+        },
+      });
     }
     if (url.endsWith("/daily-credit-notice/claim")) {
       if (typeof claim === "number") return new Response("", { status: claim });
@@ -220,14 +229,8 @@ test("usage reads the precise balance, plan and the mint meter once a key exists
   }
 });
 
-test("usage renders bucket windows when the deployment serves wallets", async () => {
-  const restore = serveAll({
-    wallets: {
-      daily_credits: { total_balance: 30 },
-      monthly_credits: { total_balance: 400 },
-      longterm_credits: { total_balance: 7 },
-    },
-  });
+test("usage renders wallet bucket windows with their real expiry", async () => {
+  const restore = serveAll({ wallets: { items: [] } });
   try {
     const hooks = await QwenworkPlugin({}, { lang: "en" });
     const auth = {
@@ -236,15 +239,16 @@ test("usage renders bucket windows when the deployment serves wallets", async ()
       metadata: { mode: "paste", email: "user@example.com", plan: "" },
     };
     const usage = await hooks.auth.usage(async () => auth);
-    assert.equal(usage.windows.length, 4);
+    assert.equal(usage.windows.length, 3);
     assert.equal(usage.windows[0].name, "Daily");
-    assert.equal(usage.windows[0].display, "30 credits");
-    assert.equal(usage.windows[1].name, "Plan");
-    assert.equal(usage.windows[1].display, "400 credits");
-    assert.equal(usage.windows[2].name, "Add-on");
-    assert.equal(usage.windows[2].aside, true);
-    assert.equal(usage.windows[3].name, "Credits");
-    assert.equal(usage.windows[3].display, "699.97 credits remaining");
+    assert.equal(usage.windows[0].display, "199.95 credits");
+    assert.equal(usage.windows[0].resetsAt, "2026-11-28T16:00:00.000Z");
+    assert.equal(usage.windows[1].name, "Add-on");
+    assert.equal(usage.windows[1].display, "500 credits");
+    assert.equal(usage.windows[1].resetsAt, "2027-02-25T11:20:29.820Z");
+    assert.equal(usage.windows[1].aside, true);
+    assert.equal(usage.windows[2].name, "Credits");
+    assert.equal(usage.windows[2].display, "699.97 credits remaining");
   } finally {
     restore.mock.restore();
   }
@@ -410,5 +414,5 @@ test("the internal test bag exposes the expected names", () => {
     assert.notEqual(_internal[name], undefined, name);
   }
   assert.equal(_internal.FALLBACK_SNAPSHOT_DATE, "2026-11-27");
-  assert.equal(_internal.VERSION, "0.2.0");
+  assert.equal(_internal.VERSION, "0.3.0");
 });

@@ -29,7 +29,7 @@ import {
   fetchAccountContext,
   fetchBalance,
   fetchQuotaUsage,
-  fetchWallets,
+  fetchUserWallets,
   normalizeAccountContext,
   normalizeBalance,
   parseCreditBreakdown,
@@ -167,7 +167,7 @@ export const QwenworkPlugin = async (input = {}, options = {}) => {
           .catch(() => null),
         walletsDead.has(key)
           ? Promise.resolve(null)
-          : fetchWallets(settings.gatewayOrigin, session.token, {
+          : fetchUserWallets(session.token, {
               fetchImpl,
               timeoutMs: USAGE_TIMEOUT_MS,
             }).then((result) => {
@@ -270,7 +270,7 @@ export const _internal = {
   fetchAccountContext,
   fetchBalance,
   fetchQuotaUsage,
-  fetchWallets,
+  fetchUserWallets,
   fetchCatalog,
   fallbackModels,
   modelsFromCatalog,
