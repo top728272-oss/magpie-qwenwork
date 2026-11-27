@@ -89,6 +89,15 @@ function adoptMethod({ options, lang, fetchImpl, deps = {} }) {
     label: t(lang, "loginAdopt"),
     async authorize(_inputs, { signal } = {}) {
       const explicitDir = options.dataDir;
+      const current = await readDoc({ explicitDir, env, home });
+      if (current.reason === "identity-unsupported") {
+        return {
+          type: "failed",
+          error: t(lang, "errIdentityVersion", {
+            version: current.identityVersion ?? 0,
+          }),
+        };
+      }
 
       return {
         url: "https://qwenwork.ai",

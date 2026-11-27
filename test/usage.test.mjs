@@ -215,7 +215,7 @@ test("normalizeWalletTotals reads the v1 bucket totals", () => {
     },
   });
   assert.equal(wallets.daily.balance, 199.952);
-  assert.equal(wallets.monthly, null);
+  assert.deepEqual(wallets.monthly, { balance: 0, validTo: null });
   assert.equal(wallets.longterm.balance, 500);
   assert.equal(normalizeWalletTotals({ data: {} }), null);
   assert.equal(normalizeWalletTotals(null), null);
@@ -450,25 +450,38 @@ test("gateway fetchers send desktop headers to the right paths", async () => {
 });
 
 test("fetchUserWallets reports a permanent miss when both endpoints 404", async () => {
-  const bothDown = fakeFetch(
-    (url) =>
-      new Response("", {
-        status: url.includes("/user/v2/wallets") ? 404 : 404,
-      }),
-  );
+  const bothDown = fakeFetch(() => new Response("", { status: 404 }));
   const dead = await fetchUserWallets("t", { fetchImpl: bothDown });
   assert.equal(dead.ok, false);
   assert.equal(dead.permanent, true);
+});
 
-  const serverError = fakeFetch(
-    (url) =>
-      new Response("boom", {
-        status: url.includes("/user/v2/wallets") ? 503 : 503,
-      }),
-  );
+test("fetchUserWallets treats 403 and server errors as transient", async () => {
+  const forbidden = fakeFetch(() => new Response("", { status: 403 }));
+  const refused = await fetchUserWallets("t", { fetchImpl: forbidden });
+  assert.equal(refused.ok, false);
+  assert.equal(refused.permanent, false);
+
+  const serverError = fakeFetch(() => new Response("boom", { status: 503 }));
   const transient = await fetchUserWallets("t", { fetchImpl: serverError });
   assert.equal(transient.ok, false);
   assert.equal(transient.permanent, false);
+});
+
+test("buildUsage keeps a zero-balance bucket as a real window", () => {
+  const usage = buildUsage({
+    wallets: {
+      daily: null,
+      monthly: { balance: 0, validTo: null },
+      longterm: null,
+    },
+    lang: "en",
+    now: NOW,
+  });
+  assert.equal(usage.windows.length, 2);
+  assert.equal(usage.windows[0].name, "Plan");
+  assert.equal(usage.windows[0].display, "0 credits");
+  assert.equal(usage.windows[1].name, "Credits");
 });
 
 test("buildUsageError keeps the vendor message", () => {

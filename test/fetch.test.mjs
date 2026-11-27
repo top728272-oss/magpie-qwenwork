@@ -5,7 +5,6 @@ import {
   createLoader,
   guardResponse,
   maasBase,
-  modelIdFromBody,
   normalizeIncomingUrl,
   sessionHeaders,
 } from "../src/fetch.mjs";
@@ -59,16 +58,6 @@ test("maasBase trims slashes and appends /v1", () => {
     maasBase("https://api2.qwenwork.ai"),
     "https://api2.qwenwork.ai/v1",
   );
-});
-
-test("modelIdFromBody reads the model field and tolerates garbage", () => {
-  assert.equal(
-    modelIdFromBody(JSON.stringify({ model: "glm-5.3" })),
-    "glm-5.3",
-  );
-  assert.equal(modelIdFromBody("{}"), "");
-  assert.equal(modelIdFromBody("not json"), "");
-  assert.equal(modelIdFromBody(undefined), "");
 });
 
 test("guardResponse flags a 401 as an expired sign-in", async () => {

@@ -1,5 +1,5 @@
 export const PROVIDER = "qwenwork";
-export const VERSION = "0.3.0";
+export const VERSION = "0.3.1";
 
 export const GATEWAY = "https://gateway.qwenwork.ai";
 export const WEB_ORIGIN = "https://qwenwork.ai";

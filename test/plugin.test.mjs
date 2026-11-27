@@ -438,5 +438,5 @@ test("the internal test bag exposes the expected names", () => {
     assert.notEqual(_internal[name], undefined, name);
   }
   assert.equal(_internal.FALLBACK_SNAPSHOT_DATE, "2026-11-27");
-  assert.equal(_internal.VERSION, "0.3.0");
+  assert.equal(_internal.VERSION, "0.3.1");
 });

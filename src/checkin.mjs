@@ -55,7 +55,11 @@ export function checkinOutcome(result, { lang = "zh" } = {}) {
     };
   }
   if (status === 401)
-    return { outcome: "failed", message: t(lang, "errSignInExpired") };
+    return {
+      outcome: "failed",
+      message: t(lang, "errSignInExpired"),
+      signIn: "expired",
+    };
   if (status >= 500)
     return { outcome: "failed", message: t(lang, "errUpstream", { status }) };
   return {
