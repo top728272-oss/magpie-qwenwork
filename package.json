@@ -1,0 +1,55 @@
+{
+  "name": "magpie-qwenwork",
+  "version": "0.1.0",
+  "description": "magpie provider plugin: QwenWork subscription models (Qwen, GLM, GPT, DeepSeek, Kimi, MiniMax) through the desktop MaaS gateway",
+  "type": "module",
+  "main": "./index.mjs",
+  "files": [
+    "index.mjs",
+    "src",
+    "icon.svg",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "magpie",
+    "qwenwork"
+  ],
+  "license": "MIT",
+  "author": "top728272-oss",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/top728272-oss/magpie-qwenwork.git"
+  },
+  "bugs": {
+    "url": "https://github.com/top728272-oss/magpie-qwenwork/issues"
+  },
+  "homepage": "https://github.com/top728272-oss/magpie-qwenwork#readme",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "e2e": "node scripts/e2e.mjs",
+    "probe": "node scripts/probe.mjs"
+  },
+  "magpie": {
+    "name": "QwenWork",
+    "summary": {
+      "en": "Use QwenWork subscription models (Qwen, GLM, GPT, DeepSeek, Kimi, MiniMax) in every agent",
+      "zh": "在每个 agent 里使用 QwenWork 订阅模型（Qwen/GLM/GPT/DeepSeek/Kimi/MiniMax）"
+    },
+    "options": {
+      "lang": "auto",
+      "allowModelKeys": [],
+      "debug": false
+    },
+    "maxConcurrency": 4,
+    "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4IiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTA4IDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzhCNUNGNiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzI1NjNFQiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9IjE3IiBjeT0iMTciIHI9IjEwLjUiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI1Ii8+PHBhdGggZD0iTTI0LjUgMjQuNUwzMS41IDMxLjUiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48dGV4dCB4PSIzNiIgeT0iMjMuNSIgZm9udC1mYW1pbHk9IlNlZ29lIFVJLCBzeXN0ZW0tdWksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUuNSIgZm9udC13ZWlnaHQ9IjYwMCIgbGV0dGVyLXNwYWNpbmc9IjAuMiIgZmlsbD0iI0ZGRkZGRiI+UXdlbldvcms8L3RleHQ+PC9zdmc+"
+  }
+}

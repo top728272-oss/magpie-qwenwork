@@ -1,0 +1,25 @@
+magpie-qwenwork
+Copyright (c) 2026 magpie-qwenwork contributors
+
+## Interoperability
+
+The plugin interoperates with the user's own locally installed QwenWork desktop account and the
+public HTTP API at gateway.qwenwork.ai and the minted MaaS upstream. No QwenWork source code or
+assets are included in this repository. The plugin is read-only on QwenWork data: it never writes
+auth-v2.dat, Local State or any other app file, and it never calls the refresh-token flow.
+
+## magpie plugin specification
+
+The plugin follows the magpie plugin documentation (https://usemagpie.ai/docs/zh/plugins) and is an
+OpenCode v1 style provider plugin.
+
+## Third-party names
+
+"QwenWork", "Qwen", "GLM", "GPT", "DeepSeek", "Kimi" and "MiniMax" are trademarks of their
+respective owners. Model availability and pricing are controlled by the QwenWork service. This
+plugin is an unofficial integration and is not affiliated with or endorsed by Alibaba/Qwen.
+
+## Data handling
+
+Credentials are decrypted locally (Windows DPAPI) and sent only to gateway.qwenwork.ai and the
+minted base_url. Tokens are never logged in plaintext and never redistributed.

@@ -1,0 +1,13 @@
+node_modules/
+artifacts/
+*.log
+.env
+.env.*
+state*.json
+*.local.json
+.DS_Store
+AGENTS.md
+files
+handoff.md
+docs
+tools
