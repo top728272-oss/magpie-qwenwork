@@ -49,7 +49,11 @@ test("normalizeAccountContext maps user, plan, quota and next refresh", () => {
 test("normalizeBalance reads the precise pool", () => {
   const balance = normalizeBalance({
     code: "ok",
-    data: { admission: { bypass_balance_check: true }, balance: 699.9663, freeze_credit: 2 },
+    data: {
+      admission: { bypass_balance_check: true },
+      balance: 699.9663,
+      freeze_credit: 2,
+    },
   });
   assert.equal(balance.balance, 699.9663);
   assert.equal(balance.freezeCredit, 2);
@@ -58,15 +62,33 @@ test("normalizeBalance reads the precise pool", () => {
 
 test("parseCreditBreakdown picks the first key with a remaining per bucket", () => {
   const breakdown = parseCreditBreakdown({
-    daily_quota: { total: 100, used: 40, remaining: 60, percentage: 40, unit: "credits" },
+    daily_quota: {
+      total: 100,
+      used: 40,
+      remaining: 60,
+      percentage: 40,
+      unit: "credits",
+    },
     dailyQuota: { total: 1, used: 0, remaining: 1 },
     monthly_quota: null,
-    subscriptionQuota: { total: 500, used: 100, remaining: 400, percentage: 20, unit: "credits" },
+    subscriptionQuota: {
+      total: 500,
+      used: 100,
+      remaining: 400,
+      percentage: 20,
+      unit: "credits",
+    },
     otherCredits: { total: 10, used: 3, remaining: 7 },
     daily_refresh_amount: 5,
     expires_at: 0,
   });
-  assert.deepEqual(breakdown.daily, { total: 100, used: 40, remaining: 60, percentage: 40, unit: "credits" });
+  assert.deepEqual(breakdown.daily, {
+    total: 100,
+    used: 40,
+    remaining: 60,
+    percentage: 40,
+    unit: "credits",
+  });
   assert.equal(breakdown.monthly.total, 500);
   assert.equal(breakdown.other.remaining, 7);
   assert.equal(breakdown.dailyRefreshAmount, 5);
@@ -93,7 +115,14 @@ test("parseCreditBreakdown reads the nested refresh amount and ms/second expiry"
 });
 
 test("parseCreditBreakdown returns null when every bucket is absent", () => {
-  assert.equal(parseCreditBreakdown({ user_quota: null, add_on_quota: null, expires_at: 0 }), null);
+  assert.equal(
+    parseCreditBreakdown({
+      user_quota: null,
+      add_on_quota: null,
+      expires_at: 0,
+    }),
+    null,
+  );
   assert.equal(parseCreditBreakdown({}), null);
   assert.equal(parseCreditBreakdown(null), null);
 });
@@ -118,7 +147,11 @@ test("parseWalletItems maps the v2 wallet entries", () => {
           valid_from: "2026-11-25T11:20:29.82Z",
           valid_to: "2027-02-25T11:20:29.82Z",
         },
-        { period_type: "daily_credits", balance: "0.05", valid_to: "2026-11-28T16:00:00Z" },
+        {
+          period_type: "daily_credits",
+          balance: "0.05",
+          valid_to: "2026-11-28T16:00:00Z",
+        },
         { period_type: "daily_credits", balance: "broken" },
       ],
     },
@@ -131,17 +164,39 @@ test("parseWalletItems maps the v2 wallet entries", () => {
 });
 
 test("normalizeWalletBuckets sums balances and keeps the soonest expiry", () => {
-  const buckets = normalizeWalletBuckets(parseWalletItems({
-    data: {
-      items: [
-        { period_type: "daily_credits", balance: "100", valid_to: "2026-11-29T00:00:00Z" },
-        { period_type: "daily_credits", balance: "99.952", valid_to: "2026-11-28T16:00:00Z" },
-        { period_type: "monthly_credits", balance: "42", valid_to: "2027-01-01T00:00:00Z" },
-        { period_type: "longterm_credits", balance: "500", valid_to: "2027-02-25T11:20:29.82Z" },
-        { period_type: "mystery_credits", balance: "7", valid_to: "2027-03-01T00:00:00Z" },
-      ],
-    },
-  }));
+  const buckets = normalizeWalletBuckets(
+    parseWalletItems({
+      data: {
+        items: [
+          {
+            period_type: "daily_credits",
+            balance: "100",
+            valid_to: "2026-11-29T00:00:00Z",
+          },
+          {
+            period_type: "daily_credits",
+            balance: "99.952",
+            valid_to: "2026-11-28T16:00:00Z",
+          },
+          {
+            period_type: "monthly_credits",
+            balance: "42",
+            valid_to: "2027-01-01T00:00:00Z",
+          },
+          {
+            period_type: "longterm_credits",
+            balance: "500",
+            valid_to: "2027-02-25T11:20:29.82Z",
+          },
+          {
+            period_type: "mystery_credits",
+            balance: "7",
+            valid_to: "2027-03-01T00:00:00Z",
+          },
+        ],
+      },
+    }),
+  );
   assert.equal(buckets.daily.balance, 199.952);
   assert.equal(buckets.daily.validTo, Date.parse("2026-11-28T16:00:00Z"));
   assert.equal(buckets.daily.count, 2);
@@ -175,8 +230,22 @@ test("fetchUserWallets prefers v2 items and falls back to v1 totals", async () =
           data: {
             lifecycle: "active",
             items: [
-              { credit_name: "trial_credits", period_type: "daily_credits", source: "daily_refresh", balance: "199.952", valid_from: "2026-11-27T16:00:00Z", valid_to: "2026-11-28T16:00:00Z" },
-              { credit_name: "trial_credits", period_type: "longterm_credits", source: "user_registration", balance: "500", valid_from: "2026-11-25T11:20:29.82Z", valid_to: "2027-02-25T11:20:29.82Z" },
+              {
+                credit_name: "trial_credits",
+                period_type: "daily_credits",
+                source: "daily_refresh",
+                balance: "199.952",
+                valid_from: "2026-11-27T16:00:00Z",
+                valid_to: "2026-11-28T16:00:00Z",
+              },
+              {
+                credit_name: "trial_credits",
+                period_type: "longterm_credits",
+                source: "user_registration",
+                balance: "500",
+                valid_from: "2026-11-25T11:20:29.82Z",
+                valid_to: "2027-02-25T11:20:29.82Z",
+              },
             ],
           },
         }),
@@ -188,10 +257,16 @@ test("fetchUserWallets prefers v2 items and falls back to v1 totals", async () =
   assert.equal(wallets.ok, true);
   assert.equal(wallets.via, "v2");
   assert.equal(wallets.buckets.daily.balance, 199.952);
-  assert.equal(wallets.buckets.daily.validTo, Date.parse("2026-11-28T16:00:00Z"));
+  assert.equal(
+    wallets.buckets.daily.validTo,
+    Date.parse("2026-11-28T16:00:00Z"),
+  );
   assert.equal(wallets.buckets.longterm.balance, 500);
   const call = v2.calls[0];
-  assert.equal(call.url, "https://qwenwork.ai/user/v2/wallets?lifecycle=active");
+  assert.equal(
+    call.url,
+    "https://qwenwork.ai/user/v2/wallets?lifecycle=active",
+  );
   const headers = new Headers(call.init.headers);
   assert.equal(headers.get("authorization"), "Bearer sess-token");
 
@@ -199,7 +274,13 @@ test("fetchUserWallets prefers v2 items and falls back to v1 totals", async () =
     url.includes("/user/v2/wallets")
       ? new Response("gone", { status: 500 })
       : new Response(
-          JSON.stringify({ code: "ok", data: { daily_credits: { total_balance: 30 }, longterm_credits: { total_balance: 7 } } }),
+          JSON.stringify({
+            code: "ok",
+            data: {
+              daily_credits: { total_balance: 30 },
+              longterm_credits: { total_balance: 7 },
+            },
+          }),
           { status: 200, headers: { "content-type": "application/json" } },
         ),
   );
@@ -231,7 +312,12 @@ test("buildUsage builds Daily, Plan, Add-on windows plus the credits pool", () =
       dailyRefreshAmount: 5,
       expiresAt: new Date(NOW + 30 * 86400_000).getTime(),
     },
-    context: { email: "u@x.y", plan: "Pro", remaining: 470, nextRefreshDate: "2026-11-28T00:00:00Z" },
+    context: {
+      email: "u@x.y",
+      plan: "Pro",
+      remaining: 470,
+      nextRefreshDate: "2026-11-28T00:00:00Z",
+    },
     lang: "en",
     now: NOW,
   });
@@ -267,7 +353,12 @@ test("buildUsage degrades to the single-pool card when all breakdown keys are nu
     balance: 699.9663,
     breakdown: null,
     wallets: null,
-    context: { email: "u@x.y", plan: "Free", remaining: 700, nextRefreshDate: "" },
+    context: {
+      email: "u@x.y",
+      plan: "Free",
+      remaining: 700,
+      nextRefreshDate: "",
+    },
     mint: { expiresAtMs: NOW + 3_600_000 },
     lang: "en",
     now: NOW,
@@ -284,7 +375,10 @@ test("buildUsage falls back to wallet buckets with their real expiry", () => {
     wallets: {
       daily: { balance: 199.952, validTo: Date.parse("2026-11-28T16:00:00Z") },
       monthly: null,
-      longterm: { balance: 500, validTo: Date.parse("2027-02-25T11:20:29.82Z") },
+      longterm: {
+        balance: 500,
+        validTo: Date.parse("2027-02-25T11:20:29.82Z"),
+      },
     },
     context: { email: "", plan: "Free", remaining: 700, nextRefreshDate: "" },
     lang: "en",
@@ -317,20 +411,32 @@ test("buildUsage reports an expired minted key and unknown credits", () => {
 
 test("mintWindow handles missing values", () => {
   assert.equal(mintWindow({ mint: null, lang: "en", now: NOW }), null);
-  assert.equal(mintWindow({ mint: { expiresAtMs: 0 }, lang: "en", now: NOW }), null);
+  assert.equal(
+    mintWindow({ mint: { expiresAtMs: 0 }, lang: "en", now: NOW }),
+    null,
+  );
 });
 
 test("gateway fetchers send desktop headers to the right paths", async () => {
-  const fetchImpl = fakeFetch(() =>
-    new Response(
-      JSON.stringify({ code: "ok", data: { balance: 12.5, freeze_credit: 0 } }),
-      { status: 200, headers: { "content-type": "application/json" } },
-    ),
+  const fetchImpl = fakeFetch(
+    () =>
+      new Response(
+        JSON.stringify({
+          code: "ok",
+          data: { balance: 12.5, freeze_credit: 0 },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
   );
-  const balance = await fetchBalance(`${GATEWAY}/`, "sess-token", { fetchImpl });
+  const balance = await fetchBalance(`${GATEWAY}/`, "sess-token", {
+    fetchImpl,
+  });
   const call = fetchImpl.calls[0];
   assert.equal(call.url, `${GATEWAY}/api/v1/adapter/user/balance`);
-  assert.equal(new Headers(call.init.headers).get("authorization"), "Bearer sess-token");
+  assert.equal(
+    new Headers(call.init.headers).get("authorization"),
+    "Bearer sess-token",
+  );
   assert.equal(normalizeBalance(balance).balance, 12.5);
 
   await fetchQuotaUsage(GATEWAY, "t", { fetchImpl });
@@ -344,17 +450,21 @@ test("gateway fetchers send desktop headers to the right paths", async () => {
 });
 
 test("fetchUserWallets reports a permanent miss when both endpoints 404", async () => {
-  const bothDown = fakeFetch((url) =>
-    new Response("", { status: url.includes("/user/v2/wallets") ? 404 : 404 }),
+  const bothDown = fakeFetch(
+    (url) =>
+      new Response("", {
+        status: url.includes("/user/v2/wallets") ? 404 : 404,
+      }),
   );
   const dead = await fetchUserWallets("t", { fetchImpl: bothDown });
   assert.equal(dead.ok, false);
   assert.equal(dead.permanent, true);
 
-  const serverError = fakeFetch((url) =>
-    new Response("boom", {
-      status: url.includes("/user/v2/wallets") ? 503 : 503,
-    }),
+  const serverError = fakeFetch(
+    (url) =>
+      new Response("boom", {
+        status: url.includes("/user/v2/wallets") ? 503 : 503,
+      }),
   );
   const transient = await fetchUserWallets("t", { fetchImpl: serverError });
   assert.equal(transient.ok, false);

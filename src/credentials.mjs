@@ -314,12 +314,22 @@ export async function readAuthDocument({
     try {
       key = await osCryptKey({ explicitDir, env, home, io, deps });
     } catch (err) {
-      return { ok: false, tried: [path], path, reason: String(err?.message ?? err) };
+      return {
+        ok: false,
+        tried: [path],
+        path,
+        reason: String(err?.message ?? err),
+      };
     }
     try {
       plain = osCryptDecrypt(blob, key);
     } catch (err) {
-      return { ok: false, tried: [path], path, reason: `decrypt: ${err?.message ?? err}` };
+      return {
+        ok: false,
+        tried: [path],
+        path,
+        reason: `decrypt: ${err?.message ?? err}`,
+      };
     }
   } else {
     plain = blob;
@@ -329,7 +339,12 @@ export async function readAuthDocument({
   try {
     doc = parseAuthDocument(plain.toString("utf8"), path);
   } catch (err) {
-    return { ok: false, tried: [path], path, reason: String(err?.message ?? err) };
+    return {
+      ok: false,
+      tried: [path],
+      path,
+      reason: String(err?.message ?? err),
+    };
   }
 
   const state = sessionStateOf(doc);
@@ -342,7 +357,8 @@ export async function readAuthDocument({
       identityVersion: state.identityVersion,
     };
   }
-  if (!state.token) return { ok: false, tried: [path], path, reason: "no-token" };
+  if (!state.token)
+    return { ok: false, tried: [path], path, reason: "no-token" };
   if (/\s/.test(state.token) || state.token.length > 8192)
     return { ok: false, tried: [path], path, reason: "invalid-token" };
 

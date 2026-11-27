@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      - name: Install
+        run: npm ci
       - name: Test
         run: node --test
 
@@ -43,8 +45,22 @@ jobs:
             console.log('hooks:', keys.join(', '));
             if (!hooks.auth || hooks.auth.provider !== 'qwenwork') process.exit(1);
             if (hooks.auth.methods.length !== 2) process.exit(1);
+            if (typeof hooks.auth.checkin !== 'function') process.exit(1);
             const cfg = {};
             await hooks.config(cfg);
             if (cfg.provider.qwenwork.api !== 'https://api1.qwenwork.ai/v1') process.exit(1);
           });
           "
+
+  format:
+    name: prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: npm ci
+      - name: Format check
+        run: npm run format:check

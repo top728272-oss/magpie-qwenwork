@@ -98,7 +98,9 @@ record("catalog", ids.length > 0, `${ids.length} models exposed`, {
 
 const chatModel = arg(
   "chat-model",
-  byFamily.chat.includes(VALIDATION_MODEL) ? VALIDATION_MODEL : byFamily.chat[0],
+  byFamily.chat.includes(VALIDATION_MODEL)
+    ? VALIDATION_MODEL
+    : byFamily.chat[0],
 );
 const messagesModel = arg(
   "messages-model",
@@ -200,8 +202,7 @@ if (messagesModel) {
     }),
   });
   const { json } = await readAll(res);
-  const ok =
-    res.ok && Array.isArray(json?.content) && json.content.length > 0;
+  const ok = res.ok && Array.isArray(json?.content) && json.content.length > 0;
   record(
     "messages",
     ok,

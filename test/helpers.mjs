@@ -49,7 +49,10 @@ export function makeAuthDoc({
 export function makeEncryptedBlob(plain, key = randomBytes(32)) {
   const nonce = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key, nonce);
-  const ct = Buffer.concat([cipher.update(Buffer.from(plain, "utf8")), cipher.final()]);
+  const ct = Buffer.concat([
+    cipher.update(Buffer.from(plain, "utf8")),
+    cipher.final(),
+  ]);
   const tag = cipher.getAuthTag();
   return {
     key,
@@ -60,7 +63,10 @@ export function makeEncryptedBlob(plain, key = randomBytes(32)) {
 export function makeLocalState(key) {
   return {
     os_crypt: {
-      encrypted_key: Buffer.concat([Buffer.from("DPAPI", "latin1"), key]).toString("base64"),
+      encrypted_key: Buffer.concat([
+        Buffer.from("DPAPI", "latin1"),
+        key,
+      ]).toString("base64"),
     },
   };
 }
@@ -69,7 +75,9 @@ export function memIo(files = {}) {
   const map = new Map(
     Object.entries(files).map(([path, content]) => [
       String(path),
-      Buffer.isBuffer(content) ? content : Buffer.from(JSON.stringify(content), "utf8"),
+      Buffer.isBuffer(content)
+        ? content
+        : Buffer.from(JSON.stringify(content), "utf8"),
     ]),
   );
   return {

@@ -20,8 +20,14 @@ test("detectLang maps zh locales to Chinese and everything else to English", () 
 });
 
 test("t interpolates named variables and falls back to the key", () => {
-  assert.equal(t("en", "errUpstream", { status: 502 }), "QwenWork upstream answered 502.");
-  assert.equal(t("zh", "errUpstream", { status: 502 }), "QwenWork 上游返回 502。");
+  assert.equal(
+    t("en", "errUpstream", { status: 502 }),
+    "QwenWork upstream answered 502.",
+  );
+  assert.equal(
+    t("zh", "errUpstream", { status: 502 }),
+    "QwenWork 上游返回 502。",
+  );
   assert.equal(t("en", "missing-key"), "missing-key");
   assert.equal(t("en", "errUpstream"), "QwenWork upstream answered {status}.");
 });

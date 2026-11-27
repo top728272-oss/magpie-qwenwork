@@ -47,8 +47,22 @@ function serveAll({
         data: {
           lifecycle: "active",
           items: [
-            { credit_name: "trial_credits", period_type: "daily_credits", source: "daily_refresh", balance: "199.952", valid_from: "2026-11-27T16:00:00Z", valid_to: "2026-11-28T16:00:00.000Z" },
-            { credit_name: "trial_credits", period_type: "longterm_credits", source: "user_registration", balance: "500", valid_from: "2026-11-25T11:20:29.82Z", valid_to: "2027-02-25T11:20:29.82Z" },
+            {
+              credit_name: "trial_credits",
+              period_type: "daily_credits",
+              source: "daily_refresh",
+              balance: "199.952",
+              valid_from: "2026-11-27T16:00:00Z",
+              valid_to: "2026-11-28T16:00:00.000Z",
+            },
+            {
+              credit_name: "trial_credits",
+              period_type: "longterm_credits",
+              source: "user_registration",
+              balance: "500",
+              valid_from: "2026-11-25T11:20:29.82Z",
+              valid_to: "2027-02-25T11:20:29.82Z",
+            },
           ],
         },
       });
@@ -207,11 +221,14 @@ test("usage reads the precise balance, plan and the mint meter once a key exists
     };
     const getAuth = async () => auth;
     const loader = await hooks.auth.loader(getAuth);
-    const res = await loader.fetch("https://gateway.qwenwork.ai/v1/chat/completions", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ model: "glm-5.3", messages: [] }),
-    });
+    const res = await loader.fetch(
+      "https://gateway.qwenwork.ai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ model: "glm-5.3", messages: [] }),
+      },
+    );
     assert.equal(res.status, 200);
 
     const usage = await hooks.auth.usage(getAuth);
@@ -294,7 +311,9 @@ test("usage reports an error payload when every gateway endpoint refuses", async
 });
 
 test("checkin claims credits and invalidates the usage cache", async () => {
-  const restore = serveAll({ claim: { status: 200, body: { should_show: true, credits: 20 } } });
+  const restore = serveAll({
+    claim: { status: 200, body: { should_show: true, credits: 20 } },
+  });
   try {
     const hooks = await QwenworkPlugin({}, { lang: "en" });
     const auth = {
@@ -304,14 +323,19 @@ test("checkin claims credits and invalidates the usage cache", async () => {
     };
     const getAuth = async () => auth;
     const result = await hooks.auth.checkin(getAuth);
-    assert.deepEqual(result, { outcome: "claimed", message: "Claimed 20 credits" });
+    assert.deepEqual(result, {
+      outcome: "claimed",
+      message: "Claimed 20 credits",
+    });
   } finally {
     restore.mock.restore();
   }
 });
 
 test("checkin maps a quiet day to ineligible", async () => {
-  const restore = serveAll({ claim: { status: 200, body: { should_show: false } } });
+  const restore = serveAll({
+    claim: { status: 200, body: { should_show: false } },
+  });
   try {
     const hooks = await QwenworkPlugin({}, { lang: "en" });
     const result = await hooks.auth.checkin(async () => ({

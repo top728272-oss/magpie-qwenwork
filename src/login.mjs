@@ -6,10 +6,7 @@ import {
   MODE_ADOPT,
   MODE_PASTE,
 } from "./constants.mjs";
-import {
-  successResult,
-  verifySessionToken,
-} from "./auth.mjs";
+import { successResult, verifySessionToken } from "./auth.mjs";
 import { readAuthDocument } from "./credentials.mjs";
 import { resolveLang, t } from "./i18n.mjs";
 import { describeError, isFresh } from "./util.mjs";
@@ -55,7 +52,10 @@ export async function waitForAuthDocument({
     if (signal?.aborted) throw new Error("cancelled");
 
     const found = await readDoc({ explicitDir, env, home });
-    if (found.ok && isFresh(found.state.expiresAt, ADOPT_FRESH_MARGIN_MS, now())) {
+    if (
+      found.ok &&
+      isFresh(found.state.expiresAt, ADOPT_FRESH_MARGIN_MS, now())
+    ) {
       const token = found.state.token;
       if (token !== lastTried) {
         lastTried = token;

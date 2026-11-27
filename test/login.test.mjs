@@ -58,7 +58,10 @@ test("authState maps a found document", () => {
 });
 
 test("paste method verifies the token by minting and reads plan info", async () => {
-  const methods = createMethods({ options: { gatewayOrigin: GATEWAY, lang: "en" }, deps: { fetchImpl: happyFetch() } });
+  const methods = createMethods({
+    options: { gatewayOrigin: GATEWAY, lang: "en" },
+    deps: { fetchImpl: happyFetch() },
+  });
   const paste = methods[1];
   assert.equal(paste.type, "api");
 
@@ -74,7 +77,10 @@ test("paste method verifies the token by minting and reads plan info", async () 
 });
 
 test("paste method fails on an invalid token", async () => {
-  const methods = createMethods({ options: { gatewayOrigin: GATEWAY, lang: "en" }, deps: { fetchImpl: sadFetch(401) } });
+  const methods = createMethods({
+    options: { gatewayOrigin: GATEWAY, lang: "en" },
+    deps: { fetchImpl: sadFetch(401) },
+  });
   const result = await methods[1].authorize({ key: "bad" });
   assert.equal(result.type, "failed");
   assert.match(result.error, /expired/);
@@ -91,7 +97,14 @@ test("adopt method always hands back an auto flow and adopts a fresh session in 
         ok: true,
         path: "/data/QwenWork/auth-v2.dat",
         doc,
-        state: { token: doc.token, expiresAt: Date.parse(future), email: "user@example.com", plan: "Free", authRealm: "", identityVersion: 0 },
+        state: {
+          token: doc.token,
+          expiresAt: Date.parse(future),
+          email: "user@example.com",
+          plan: "Free",
+          authRealm: "",
+          identityVersion: 0,
+        },
       }),
     },
   });
@@ -125,7 +138,19 @@ test("adopt callback adopts the session that appears on disk", async () => {
   });
   const flow = await methods[0].authorize({}, {});
   setTimeout(() => {
-    current = { ok: true, path: "/x", doc: makeAuthDoc({ token: "new-token", expiresAt: future }), state: { token: "new-token", expiresAt: Date.parse(future), email: "user@example.com", plan: "Free", authRealm: "", identityVersion: 0 } };
+    current = {
+      ok: true,
+      path: "/x",
+      doc: makeAuthDoc({ token: "new-token", expiresAt: future }),
+      state: {
+        token: "new-token",
+        expiresAt: Date.parse(future),
+        email: "user@example.com",
+        plan: "Free",
+        authRealm: "",
+        identityVersion: 0,
+      },
+    };
   }, 30);
   const result = await flow.callback();
   assert.equal(result.type, "success");
@@ -140,7 +165,14 @@ test("waitForAuthDocument verifies an unchanged invalid token only once", async 
     ok: true,
     path: "/x",
     doc: makeAuthDoc({ token: "bad-token", expiresAt: future }),
-    state: { token: "bad-token", expiresAt: Date.parse(future), email: "", plan: "", authRealm: "", identityVersion: 0 },
+    state: {
+      token: "bad-token",
+      expiresAt: Date.parse(future),
+      email: "",
+      plan: "",
+      authRealm: "",
+      identityVersion: 0,
+    },
   });
   const result = await waitForAuthDocument({
     explicitDir: "",
@@ -167,7 +199,14 @@ test("adopt callback times out when the session never becomes valid", async () =
         ok: true,
         path: "/x",
         doc: makeAuthDoc({ token: "old-token", expiresAt: past }),
-        state: { token: "old-token", expiresAt: Date.parse(past), email: "", plan: "", authRealm: "", identityVersion: 0 },
+        state: {
+          token: "old-token",
+          expiresAt: Date.parse(past),
+          email: "",
+          plan: "",
+          authRealm: "",
+          identityVersion: 0,
+        },
       }),
       pollMs: 10,
       waitMs: 60,
@@ -208,7 +247,10 @@ test("resolveAccountSettings and accountIdFor keep identities stable", () => {
   const oauthSettings = resolveAccountSettings({ type: "oauth", key: "x" }, {});
   assert.equal(oauthSettings.mode, "adopt");
 
-  assert.match(accountIdFor({ email: "User@Example.com" }), /^qwenwork:[0-9a-f]{12}$/);
+  assert.match(
+    accountIdFor({ email: "User@Example.com" }),
+    /^qwenwork:[0-9a-f]{12}$/,
+  );
   assert.equal(
     accountIdFor({ email: "User@Example.com" }),
     accountIdFor({ email: "user@example.com" }),

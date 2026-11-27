@@ -4,7 +4,9 @@ import { t } from "./i18n.mjs";
 import { toNumber } from "./util.mjs";
 
 export function claimPath(origin) {
-  return `${String(origin ?? "").trim().replace(/\/+$/, "")}${CLAIM_PATH}`;
+  return `${String(origin ?? "")
+    .trim()
+    .replace(/\/+$/, "")}${CLAIM_PATH}`;
 }
 
 export async function claimDailyCredit(
@@ -21,14 +23,18 @@ export async function claimDailyCredit(
     });
     return { ok: true, status: 200, payload };
   } catch (err) {
-    if (err instanceof HttpError) return { ok: false, status: err.status, error: err.message };
+    if (err instanceof HttpError)
+      return { ok: false, status: err.status, error: err.message };
     return { ok: false, status: 0, error: String(err?.message ?? err) };
   }
 }
 
 export function checkinOutcome(result, { lang = "zh" } = {}) {
   if (result?.ok) {
-    const payload = result.payload && typeof result.payload === "object" ? result.payload : {};
+    const payload =
+      result.payload && typeof result.payload === "object"
+        ? result.payload
+        : {};
     const credits = toNumber(payload.credits, 0);
     if (payload.should_show === true && credits > 0) {
       return {
@@ -48,8 +54,10 @@ export function checkinOutcome(result, { lang = "zh" } = {}) {
       unavailable: true,
     };
   }
-  if (status === 401) return { outcome: "failed", message: t(lang, "errSignInExpired") };
-  if (status >= 500) return { outcome: "failed", message: t(lang, "errUpstream", { status }) };
+  if (status === 401)
+    return { outcome: "failed", message: t(lang, "errSignInExpired") };
+  if (status >= 500)
+    return { outcome: "failed", message: t(lang, "errUpstream", { status }) };
   return {
     outcome: "failed",
     message: String(result?.error ?? "").trim() || t(lang, "errTimeout"),

@@ -36,7 +36,9 @@
   "scripts": {
     "test": "node --test",
     "e2e": "node scripts/e2e.mjs",
-    "probe": "node scripts/probe.mjs"
+    "probe": "node scripts/probe.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "magpie": {
     "name": "QwenWork",
@@ -51,5 +53,8 @@
     },
     "maxConcurrency": 4,
     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4IiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTA4IDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzhCNUNGNiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzI1NjNFQiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9IjE3IiBjeT0iMTciIHI9IjEwLjUiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI1Ii8+PHBhdGggZD0iTTI0LjUgMjQuNUwzMS41IDMxLjUiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48dGV4dCB4PSIzNiIgeT0iMjMuNSIgZm9udC1mYW1pbHk9IlNlZ29lIFVJLCBzeXN0ZW0tdWksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUuNSIgZm9udC13ZWlnaHQ9IjYwMCIgbGV0dGVyLXNwYWNpbmc9IjAuMiIgZmlsbD0iI0ZGRkZGRiI+UXdlbldvcms8L3RleHQ+PC9zdmc+"
+  },
+  "devDependencies": {
+    "prettier": "^3.10.1"
   }
 }

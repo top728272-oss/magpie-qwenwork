@@ -46,7 +46,7 @@ function windowsFiles({ doc, key = randomBytes(32), authFile = AUTH } = {}) {
 
 test("osCryptDecrypt round-trips a v10 blob", () => {
   const key = randomBytes(32);
-  const { blob } = makeEncryptedBlob("{\"token\":\"t\"}", key);
+  const { blob } = makeEncryptedBlob('{"token":"t"}', key);
   const plain = osCryptDecrypt(blob, key);
   assert.equal(plain.toString("utf8"), '{"token":"t"}');
 });
@@ -54,7 +54,10 @@ test("osCryptDecrypt round-trips a v10 blob", () => {
 test("osCryptDecrypt rejects a wrong key and a bad prefix", () => {
   const key = randomBytes(32);
   const { blob } = makeEncryptedBlob("hello", key);
-  assert.throws(() => osCryptDecrypt(blob, randomBytes(32)), /decipher|Unsupported|auth/);
+  assert.throws(
+    () => osCryptDecrypt(blob, randomBytes(32)),
+    /decipher|Unsupported|auth/,
+  );
   assert.throws(
     () => osCryptDecrypt(Buffer.from("XYZ-not-a-blob"), key),
     /unexpected os_crypt prefix/,
@@ -62,7 +65,10 @@ test("osCryptDecrypt rejects a wrong key and a bad prefix", () => {
 });
 
 test("parseTimestamp reads ISO strings and epoch numbers", () => {
-  assert.equal(parseTimestamp("2026-12-04T15:24:09Z"), Date.parse("2026-12-04T15:24:09Z"));
+  assert.equal(
+    parseTimestamp("2026-12-04T15:24:09Z"),
+    Date.parse("2026-12-04T15:24:09Z"),
+  );
   assert.equal(parseTimestamp(1795805297000), 1795805297000);
   assert.equal(parseTimestamp(""), 0);
   assert.equal(parseTimestamp("garbage"), 0);
@@ -84,7 +90,10 @@ test("sessionStateOf maps the auth document fields", () => {
 
 test("readAuthDocument decrypts auth-v2.dat with an injected unprotect", async () => {
   const key = randomBytes(32);
-  const { blob } = encryptDoc(JSON.stringify(makeAuthDoc({ token: "tok-1" })), key);
+  const { blob } = encryptDoc(
+    JSON.stringify(makeAuthDoc({ token: "tok-1" })),
+    key,
+  );
   const io = memIo({ [AUTH]: blob, [STATE]: makeLocalState(key) });
   const found = await readAuthDocument({
     explicitDir: DIR,
@@ -182,7 +191,9 @@ test("readLocalState validates the DPAPI prefix", () => {
     explicitDir: DIR,
     io: memIo({
       [STATE]: Buffer.from(
-        JSON.stringify({ os_crypt: { encrypted_key: Buffer.from("nope").toString("base64") } }),
+        JSON.stringify({
+          os_crypt: { encrypted_key: Buffer.from("nope").toString("base64") },
+        }),
       ),
     }),
   });
@@ -220,7 +231,11 @@ test("path helpers resolve APPDATA, QWENWORK_HOME and tilde", () => {
     join("/r", "QwenWork", "auth-v2.dat"),
   );
   assert.equal(
-    authFilePath({ explicitDir: "", env: { QWENWORK_HOME: "/custom" }, home: "/h" }),
+    authFilePath({
+      explicitDir: "",
+      env: { QWENWORK_HOME: "/custom" },
+      home: "/h",
+    }),
     join("/custom", "auth-v2.dat"),
   );
   assert.equal(
@@ -232,7 +247,10 @@ test("path helpers resolve APPDATA, QWENWORK_HOME and tilde", () => {
     join("/d", "Local State"),
   );
   assert.equal(expandHome("~/x", "/h"), join("/h", "x"));
-  assert.equal(appDataDir({ env: { APPDATA: "~/roam" }, home: "/h" }), join("/h", "roam", "QwenWork"));
+  assert.equal(
+    appDataDir({ env: { APPDATA: "~/roam" }, home: "/h" }),
+    join("/h", "roam", "QwenWork"),
+  );
 });
 
 test("parseAuthDocument reports malformed JSON and shapes", () => {

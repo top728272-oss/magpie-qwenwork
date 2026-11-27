@@ -58,7 +58,8 @@ const MESSAGES = {
 
     adoptInstructions:
       "Finish the sign-in in the QwenWork desktop app; this continues automatically. If the app is already signed in, it finishes within seconds. If QwenWork did not open, install it from the page that just opened, then sign in.",
-    errAdoptTimeout: "Timed out waiting for the QwenWork sign-in. Please retry.",
+    errAdoptTimeout:
+      "Timed out waiting for the QwenWork sign-in. Please retry.",
 
     errKeyMissing: "The QwenWork session token is missing.",
     errNoCredentials:
@@ -76,8 +77,7 @@ const MESSAGES = {
     errRateLimited: "QwenWork rate-limited the request (429). Retry shortly.",
     errUpstream: "QwenWork upstream answered {status}.",
     errTimeout: "Timed out. Please retry.",
-    errRedirect:
-      "The request was redirected (auth failed). Sign in again.",
+    errRedirect: "The request was redirected (auth failed). Sign in again.",
     errNoToken: "No QwenWork session token is available.",
 
     usageCreditsName: "Credits",
@@ -97,7 +97,8 @@ const MESSAGES = {
 
     checkinClaimed: "Claimed {credits} credits",
     checkinNone: "No daily credit available today",
-    checkinUnavailable: "Daily credit claim is not offered on this plan or deployment",
+    checkinUnavailable:
+      "Daily credit claim is not offered on this plan or deployment",
   },
 };
 

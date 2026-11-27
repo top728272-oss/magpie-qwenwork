@@ -62,9 +62,7 @@ try {
   console.log("");
   console.log("  id                      sdk");
   for (const model of Object.values(fallback)) {
-    console.log(
-      `  ${model.id.padEnd(23)} ${model.provider?.npm ?? ""}`,
-    );
+    console.log(`  ${model.id.padEnd(23)} ${model.provider?.npm ?? ""}`);
   }
 } catch (err) {
   console.log(`  fallback catalog: failed (${err?.message ?? err})`);

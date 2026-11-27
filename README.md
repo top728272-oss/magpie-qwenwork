@@ -10,17 +10,17 @@ access key from the gateway, and routes each model to the endpoint family it spe
 
 ## Models
 
-| Model key           | Endpoint family          | Credits | SDK                       |
-| ------------------- | ------------------------ | ------- | ------------------------- |
-| `qwen3.8-flash`     | openai chat-completions  | 0.1x    | `@ai-sdk/openai-compatible` |
-| `glm-5.3`           | openai chat-completions  | 1x      | `@ai-sdk/openai-compatible` |
-| `gpt-6.1-sol`       | openai chat-completions  | 1x      | `@ai-sdk/openai-compatible` |
-| `qwen4-max`         | anthropic messages       | 1.4x    | `@ai-sdk/anthropic`       |
-| `qwen3.8-max`       | openai chat-completions  | 1.9x    | `@ai-sdk/openai-compatible` |
-| `deepseek-flash`    | openai chat-completions  | 0.2x    | `@ai-sdk/openai-compatible` |
-| `glm-5.3-flash`     | openai chat-completions  | 0.2x    | `@ai-sdk/openai-compatible` |
-| `kimi-k3.1-pro`     | openai chat-completions  | 2.6x    | `@ai-sdk/openai-compatible` |
-| `minimax-m3.1-flash`| anthropic messages       | 0.2x    | `@ai-sdk/anthropic`       |
+| Model key            | Endpoint family         | Credits | SDK                         |
+| -------------------- | ----------------------- | ------- | --------------------------- |
+| `qwen3.8-flash`      | openai chat-completions | 0.1x    | `@ai-sdk/openai-compatible` |
+| `glm-5.3`            | openai chat-completions | 1x      | `@ai-sdk/openai-compatible` |
+| `gpt-6.1-sol`        | openai chat-completions | 1x      | `@ai-sdk/openai-compatible` |
+| `qwen4-max`          | anthropic messages      | 1.4x    | `@ai-sdk/anthropic`         |
+| `qwen3.8-max`        | openai chat-completions | 1.9x    | `@ai-sdk/openai-compatible` |
+| `deepseek-flash`     | openai chat-completions | 0.2x    | `@ai-sdk/openai-compatible` |
+| `glm-5.3-flash`      | openai chat-completions | 0.2x    | `@ai-sdk/openai-compatible` |
+| `kimi-k3.1-pro`      | openai chat-completions | 2.6x    | `@ai-sdk/openai-compatible` |
+| `minimax-m3.1-flash` | anthropic messages      | 0.2x    | `@ai-sdk/anthropic`         |
 
 The live catalog comes from `GET /api/desktop/chat-modes` (60 second cache). The catalog contains
 duplicate keys across tiers (standard + frontier); the plugin keeps the first enabled entry per key
@@ -41,10 +41,10 @@ In the app: **Plugins -> Add plugin** -> paste the folder path or package name.
 
 `magpie plugin login qwenwork` offers two methods:
 
-| Method                      | Needs                                  | What it does                                                                                                                                             |
-| --------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Read the desktop app**    | the QwenWork desktop app signed in once | returns immediately if a fresh session exists; otherwise shows the QwenWork sign-in page and adopts the session from `auth-v2.dat` once the app logs in |
-| **Paste a session token**   | the session token from `auth-v2.dat`   | validates the token by minting a MaaS key (costs no credits); useful for non-standard installs                                                          |
+| Method                    | Needs                                   | What it does                                                                                                                                            |
+| ------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Read the desktop app**  | the QwenWork desktop app signed in once | returns immediately if a fresh session exists; otherwise shows the QwenWork sign-in page and adopts the session from `auth-v2.dat` once the app logs in |
+| **Paste a session token** | the session token from `auth-v2.dat`    | validates the token by minting a MaaS key (costs no credits); useful for non-standard installs                                                          |
 
 The adopted session is reread from disk on every mint, so as long as the desktop app keeps
 `auth-v2.dat` fresh the plugin keeps working without re-login. Nothing is ever written to QwenWork
@@ -80,7 +80,7 @@ a re-login).
    after a permanent miss) and `GET /api/v1/adapter/user/account-context` (plan name, refresh date,
    fallback pool). Bucketed credit pools get expiring windows (`Daily 199.95 credits` resetting at
    the wallet's `valid_to`, `Plan`, `Add-on`); the pool still always shows as `699.95 credits
-   remaining`, plus a display-only minted-key lifetime window.
+remaining`, plus a display-only minted-key lifetime window.
 
 Credentials travel only to `gateway.qwenwork.ai`, the minted `base_url`, and `qwenwork.ai` (the
 web user-service that serves the per-credit wallet buckets). Tokens are never logged

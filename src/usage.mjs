@@ -14,7 +14,12 @@ import { formatDuration, parseTimestamp, toNumber } from "./util.mjs";
 
 const BUCKET_KEYS = {
   daily: ["daily_quota", "dailyQuota", "daily_credits", "dailyCredits"],
-  monthly: ["monthly_quota", "monthlyQuota", "subscription_quota", "subscriptionQuota"],
+  monthly: [
+    "monthly_quota",
+    "monthlyQuota",
+    "subscription_quota",
+    "subscriptionQuota",
+  ],
   other: ["other_quota", "otherQuota", "other_credits", "otherCredits"],
 };
 const REFRESH_AMOUNT_KEYS = ["daily_refresh_amount", "dailyRefreshAmount"];
@@ -37,7 +42,12 @@ export function parseEpoch(value) {
 export function pickBucket(payload, keys) {
   for (const key of keys) {
     const raw = payload?.[key];
-    if (raw && typeof raw === "object" && raw.remaining !== null && raw.remaining !== undefined) {
+    if (
+      raw &&
+      typeof raw === "object" &&
+      raw.remaining !== null &&
+      raw.remaining !== undefined
+    ) {
       return {
         total: toNumber(raw.total, 0),
         used: toNumber(raw.used, 0),
@@ -72,13 +82,18 @@ export function parseCreditBreakdown(payload) {
     dailyRefreshAmount: dailyRefreshAmount > 0 ? dailyRefreshAmount : null,
     expiresAt: parseEpoch(payload?.expires_at),
   };
-  return breakdown.daily || breakdown.monthly || breakdown.other ? breakdown : null;
+  return breakdown.daily || breakdown.monthly || breakdown.other
+    ? breakdown
+    : null;
 }
 
 export function normalizeBalance(payload) {
-  const data = payload?.data && typeof payload.data === "object" ? payload.data : {};
+  const data =
+    payload?.data && typeof payload.data === "object" ? payload.data : {};
   return {
-    balance: Number.isFinite(Number(data.balance)) ? Number(data.balance) : null,
+    balance: Number.isFinite(Number(data.balance))
+      ? Number(data.balance)
+      : null,
     freezeCredit: toNumber(data.freeze_credit, 0),
   };
 }
@@ -126,7 +141,8 @@ export function normalizeWalletBuckets(items) {
     }
     current.balance += item.balance;
     current.count += 1;
-    if (current.validTo && item.validTo) current.validTo = Math.min(current.validTo, item.validTo);
+    if (current.validTo && item.validTo)
+      current.validTo = Math.min(current.validTo, item.validTo);
     else current.validTo = current.validTo || item.validTo;
   }
   const any = buckets.daily || buckets.monthly || buckets.longterm;
@@ -156,13 +172,18 @@ export async function fetchUserWallets(
     origin = WEB_ORIGIN,
   } = {},
 ) {
-  const base = String(origin ?? WEB_ORIGIN).trim().replace(/\/+$/, "");
+  const base = String(origin ?? WEB_ORIGIN)
+    .trim()
+    .replace(/\/+$/, "");
   try {
-    const payload = await fetchJson(`${base}${WALLETS_V2_PATH}?lifecycle=active`, {
-      headers: desktopHeaders(token),
-      fetchImpl,
-      timeoutMs,
-    });
+    const payload = await fetchJson(
+      `${base}${WALLETS_V2_PATH}?lifecycle=active`,
+      {
+        headers: desktopHeaders(token),
+        fetchImpl,
+        timeoutMs,
+      },
+    );
     const buckets = normalizeWalletBuckets(parseWalletItems(payload));
     if (buckets) return { ok: true, buckets, via: "v2" };
   } catch (err) {
@@ -342,13 +363,19 @@ export function fetchAccountContext(
   { fetchImpl = globalThis.fetch, timeoutMs = USAGE_TIMEOUT_MS } = {},
 ) {
   return fetchJson(
-    `${String(origin ?? "").trim().replace(/\/+$/, "")}${ACCOUNT_CONTEXT_PATH}?include=${ACCOUNT_CONTEXT_INCLUDE}`,
+    `${String(origin ?? "")
+      .trim()
+      .replace(
+        /\/+$/,
+        "",
+      )}${ACCOUNT_CONTEXT_PATH}?include=${ACCOUNT_CONTEXT_INCLUDE}`,
     { headers: desktopHeaders(token), fetchImpl, timeoutMs },
   );
 }
 
 export function normalizeAccountContext(payload) {
-  const data = payload?.data && typeof payload.data === "object" ? payload.data : {};
+  const data =
+    payload?.data && typeof payload.data === "object" ? payload.data : {};
   const rawRemaining = data?.quota?.remaining;
   const remaining =
     rawRemaining === null || rawRemaining === undefined
@@ -368,11 +395,16 @@ export function fetchBalance(
   token,
   { fetchImpl = globalThis.fetch, timeoutMs = USAGE_TIMEOUT_MS } = {},
 ) {
-  return fetchJson(`${String(origin ?? "").trim().replace(/\/+$/, "")}${BALANCE_PATH}`, {
-    headers: desktopHeaders(token),
-    fetchImpl,
-    timeoutMs,
-  });
+  return fetchJson(
+    `${String(origin ?? "")
+      .trim()
+      .replace(/\/+$/, "")}${BALANCE_PATH}`,
+    {
+      headers: desktopHeaders(token),
+      fetchImpl,
+      timeoutMs,
+    },
+  );
 }
 
 export function fetchQuotaUsage(
@@ -380,9 +412,14 @@ export function fetchQuotaUsage(
   token,
   { fetchImpl = globalThis.fetch, timeoutMs = USAGE_TIMEOUT_MS } = {},
 ) {
-  return fetchJson(`${String(origin ?? "").trim().replace(/\/+$/, "")}${QUOTA_USAGE_PATH}`, {
-    headers: desktopHeaders(token),
-    fetchImpl,
-    timeoutMs,
-  });
+  return fetchJson(
+    `${String(origin ?? "")
+      .trim()
+      .replace(/\/+$/, "")}${QUOTA_USAGE_PATH}`,
+    {
+      headers: desktopHeaders(token),
+      fetchImpl,
+      timeoutMs,
+    },
+  );
 }

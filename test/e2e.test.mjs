@@ -26,8 +26,14 @@ test(
     const models = await hooks.provider.models({ models: {} }, { auth });
     const ids = Object.keys(models);
     assert.ok(ids.length >= 9);
-    assert.equal(models["qwen3.8-flash"].provider.npm, "@ai-sdk/openai-compatible");
-    assert.equal(models["minimax-m3.1-flash"].provider.npm, "@ai-sdk/anthropic");
+    assert.equal(
+      models["qwen3.8-flash"].provider.npm,
+      "@ai-sdk/openai-compatible",
+    );
+    assert.equal(
+      models["minimax-m3.1-flash"].provider.npm,
+      "@ai-sdk/anthropic",
+    );
 
     const loader = await hooks.auth.loader(getAuth);
 

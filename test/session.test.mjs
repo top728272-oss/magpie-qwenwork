@@ -35,7 +35,19 @@ function makeStore({
     deps: {
       fetchImpl,
       now,
-      readDoc: async () => ({ ok: true, path: `${DIR}/auth-v2.dat`, doc, state: { token: doc.token, expiresAt: Date.parse(doc.expiresAt), email: doc.user?.email ?? "", plan: doc.user?.planName ?? "", authRealm: "standard", identityVersion: 0 } }),
+      readDoc: async () => ({
+        ok: true,
+        path: `${DIR}/auth-v2.dat`,
+        doc,
+        state: {
+          token: doc.token,
+          expiresAt: Date.parse(doc.expiresAt),
+          email: doc.user?.email ?? "",
+          plan: doc.user?.planName ?? "",
+          authRealm: "standard",
+          identityVersion: 0,
+        },
+      }),
       onMint,
       env: {},
       home: "/h",
@@ -53,11 +65,17 @@ function makeStore({
 }
 
 test("mintUrl joins the gateway and the mint path", () => {
-  assert.equal(mintUrl("https://gateway.qwenwork.ai/"), `${GATEWAY}/api/desktop-sessions`);
+  assert.equal(
+    mintUrl("https://gateway.qwenwork.ai/"),
+    `${GATEWAY}/api/desktop-sessions`,
+  );
 });
 
 test("sessionToken prefers a fresh disk token in adopt mode", async () => {
-  const doc = makeAuthDoc({ token: "disk-token", expiresAt: new Date(NOW + 3600_000).toISOString() });
+  const doc = makeAuthDoc({
+    token: "disk-token",
+    expiresAt: new Date(NOW + 3600_000).toISOString(),
+  });
   const { sessions, settings, fetchImpl } = makeStore({ doc });
   const session = await sessions.sessionToken(settings);
   assert.equal(session.token, "disk-token");
@@ -67,7 +85,10 @@ test("sessionToken prefers a fresh disk token in adopt mode", async () => {
 
 test("sessionToken falls back to the stored key when the disk token is stale", async () => {
   const stale = makeJwt({ exp: Math.floor(NOW / 1000) - 60 });
-  const doc = makeAuthDoc({ token: stale, expiresAt: new Date(NOW - 60_000).toISOString() });
+  const doc = makeAuthDoc({
+    token: stale,
+    expiresAt: new Date(NOW - 60_000).toISOString(),
+  });
   const { sessions, settings } = makeStore({ doc, key: "stored-key" });
   const session = await sessions.sessionToken(settings);
   assert.equal(session.token, "stored-key");
@@ -76,7 +97,10 @@ test("sessionToken falls back to the stored key when the disk token is stale", a
 
 test("sessionToken throws a sign-in error with no usable token", async () => {
   const stale = makeJwt({ exp: Math.floor(NOW / 1000) - 60 });
-  const doc = makeAuthDoc({ token: stale, expiresAt: new Date(NOW - 60_000).toISOString() });
+  const doc = makeAuthDoc({
+    token: stale,
+    expiresAt: new Date(NOW - 60_000).toISOString(),
+  });
   const { sessions, settings } = makeStore({ doc, key: "" });
   await assert.rejects(
     () => sessions.sessionToken(settings),
@@ -88,7 +112,10 @@ test("sessionToken throws a sign-in error with no usable token", async () => {
 });
 
 test("sessionToken in paste mode uses the pasted key without disk access", async () => {
-  const { sessions, settings, fetchImpl } = makeStore({ mode: "paste", key: "pasted-token" });
+  const { sessions, settings, fetchImpl } = makeStore({
+    mode: "paste",
+    key: "pasted-token",
+  });
   const session = await sessions.sessionToken(settings);
   assert.equal(session.token, "pasted-token");
   assert.equal(session.source, "paste");
@@ -156,7 +183,9 @@ test("concurrent ensure calls share one mint", async () => {
 
 test("a 401 on mint becomes a sign-in expired error", async () => {
   const { sessions, settings } = makeStore({
-    fetchImpl: fakeFetch(() => jsonResponse({ error: "unauthorized" }, { status: 401 })),
+    fetchImpl: fakeFetch(() =>
+      jsonResponse({ error: "unauthorized" }, { status: 401 }),
+    ),
   });
   await assert.rejects(
     () => sessions.ensureFreshAccessKey(settings),
@@ -170,7 +199,9 @@ test("a 401 on mint becomes a sign-in expired error", async () => {
 
 test("a 503 on mint becomes an unsupported-environment error", async () => {
   const { sessions, settings } = makeStore({
-    fetchImpl: fakeFetch(() => jsonResponse({ error: "no maas" }, { status: 503 })),
+    fetchImpl: fakeFetch(() =>
+      jsonResponse({ error: "no maas" }, { status: 503 }),
+    ),
   });
   await assert.rejects(
     () => sessions.ensureFreshAccessKey(settings),
@@ -184,9 +215,14 @@ test("a 503 on mint becomes an unsupported-environment error", async () => {
 
 test("an invalid mint payload is reported as-is", async () => {
   const { sessions, settings } = makeStore({
-    fetchImpl: fakeFetch(() => jsonResponse({ access_token: "k" }, { status: 201 })),
+    fetchImpl: fakeFetch(() =>
+      jsonResponse({ access_token: "k" }, { status: 201 }),
+    ),
   });
-  await assert.rejects(() => sessions.ensureFreshAccessKey(settings), /invalid-mint-response/);
+  await assert.rejects(
+    () => sessions.ensureFreshAccessKey(settings),
+    /invalid-mint-response/,
+  );
 });
 
 test("onMint fires with the mint summary", async () => {
@@ -209,7 +245,10 @@ test("error helpers carry the expected shape", () => {
 
 test("sessionToken honors the file cache ttl without re-reading", async () => {
   let reads = 0;
-  const doc = makeAuthDoc({ token: "disk-token", expiresAt: new Date(NOW + 3600_000).toISOString() });
+  const doc = makeAuthDoc({
+    token: "disk-token",
+    expiresAt: new Date(NOW + 3600_000).toISOString(),
+  });
   const sessions = createSessionStore({
     options: { gatewayOrigin: GATEWAY, lang: "en" },
     deps: {
@@ -221,14 +260,28 @@ test("sessionToken honors the file cache ttl without re-reading", async () => {
           ok: true,
           path: `${DIR}/auth-v2.dat`,
           doc,
-          state: { token: doc.token, expiresAt: Date.parse(doc.expiresAt), email: "", plan: "", authRealm: "", identityVersion: 0 },
+          state: {
+            token: doc.token,
+            expiresAt: Date.parse(doc.expiresAt),
+            email: "",
+            plan: "",
+            authRealm: "",
+            identityVersion: 0,
+          },
         };
       },
       env: {},
       home: "/h",
     },
   });
-  const settings = { mode: "adopt", gatewayOrigin: GATEWAY, dataDir: DIR, key: "", email: "", plan: "" };
+  const settings = {
+    mode: "adopt",
+    gatewayOrigin: GATEWAY,
+    dataDir: DIR,
+    key: "",
+    email: "",
+    plan: "",
+  };
   await sessions.sessionToken(settings);
   await sessions.sessionToken(settings);
   assert.equal(reads, 1);

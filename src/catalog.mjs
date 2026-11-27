@@ -25,7 +25,8 @@ export function normalizeEntry(raw) {
     priceFactor: toNumber(raw?.price_factor, 1),
     frontier: Boolean(raw?.frontier),
     isDefault: Boolean(raw?.is_default),
-    reasoning: raw?.is_reasoning === undefined ? true : Boolean(raw?.is_reasoning),
+    reasoning:
+      raw?.is_reasoning === undefined ? true : Boolean(raw?.is_reasoning),
     vl: Boolean(raw?.is_vl),
     maxInputTokens: toNumber(raw?.max_input_tokens, 0),
     enable: raw?.enable === undefined ? true : Boolean(raw.enable),
@@ -91,7 +92,9 @@ export function toMagpieModel(entry, base = {}) {
     provider: {
       ...(base?.provider ?? {}),
       npm:
-        entry.format === FORMAT_ANTHROPIC ? NPM_ANTHROPIC : NPM_OPENAI_COMPATIBLE,
+        entry.format === FORMAT_ANTHROPIC
+          ? NPM_ANTHROPIC
+          : NPM_OPENAI_COMPATIBLE,
     },
   };
   const description = buildDescription(entry);
@@ -162,14 +165,11 @@ export async function fetchCatalog(
   token,
   { fetchImpl = globalThis.fetch, timeoutMs = CATALOG_TIMEOUT_MS } = {},
 ) {
-  const payload = await fetchJson(
-    `${trimSlash(origin || "")}${CATALOG_PATH}`,
-    {
-      headers: desktopHeaders(token),
-      fetchImpl,
-      timeoutMs,
-    },
-  );
+  const payload = await fetchJson(`${trimSlash(origin || "")}${CATALOG_PATH}`, {
+    headers: desktopHeaders(token),
+    fetchImpl,
+    timeoutMs,
+  });
   const catalog = normalizeCatalog(payload);
   if (catalog.models.length === 0) throw new Error("empty catalog");
   return catalog;

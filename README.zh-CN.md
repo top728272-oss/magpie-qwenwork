@@ -8,17 +8,17 @@ agent。插件读取本机已登录的 QwenWork 桌面账号，向网关铸造 M
 
 ## 模型
 
-| 模型 key            | 端点                    | 积分倍率 | SDK                        |
-| ------------------- | ----------------------- | -------- | -------------------------- |
-| `qwen3.8-flash`     | openai chat-completions | 0.1x     | `@ai-sdk/openai-compatible` |
-| `glm-5.3`           | openai chat-completions | 1x       | `@ai-sdk/openai-compatible` |
-| `gpt-6.1-sol`       | openai chat-completions | 1x       | `@ai-sdk/openai-compatible` |
-| `qwen4-max`         | anthropic messages      | 1.4x     | `@ai-sdk/anthropic`        |
-| `qwen3.8-max`       | openai chat-completions | 1.9x     | `@ai-sdk/openai-compatible` |
-| `deepseek-flash`    | openai chat-completions | 0.2x     | `@ai-sdk/openai-compatible` |
-| `glm-5.3-flash`     | openai chat-completions | 0.2x     | `@ai-sdk/openai-compatible` |
-| `kimi-k3.1-pro`     | openai chat-completions | 2.6x     | `@ai-sdk/openai-compatible` |
-| `minimax-m3.1-flash`| anthropic messages      | 0.2x     | `@ai-sdk/anthropic`        |
+| 模型 key             | 端点                    | 积分倍率 | SDK                         |
+| -------------------- | ----------------------- | -------- | --------------------------- |
+| `qwen3.8-flash`      | openai chat-completions | 0.1x     | `@ai-sdk/openai-compatible` |
+| `glm-5.3`            | openai chat-completions | 1x       | `@ai-sdk/openai-compatible` |
+| `gpt-6.1-sol`        | openai chat-completions | 1x       | `@ai-sdk/openai-compatible` |
+| `qwen4-max`          | anthropic messages      | 1.4x     | `@ai-sdk/anthropic`         |
+| `qwen3.8-max`        | openai chat-completions | 1.9x     | `@ai-sdk/openai-compatible` |
+| `deepseek-flash`     | openai chat-completions | 0.2x     | `@ai-sdk/openai-compatible` |
+| `glm-5.3-flash`      | openai chat-completions | 0.2x     | `@ai-sdk/openai-compatible` |
+| `kimi-k3.1-pro`      | openai chat-completions | 2.6x     | `@ai-sdk/openai-compatible` |
+| `minimax-m3.1-flash` | anthropic messages      | 0.2x     | `@ai-sdk/anthropic`         |
 
 在线目录来自 `GET /api/desktop/chat-modes`（60 秒缓存）。目录里存在跨档位的重复 key（标准档 +
 前沿档）；插件按服务端顺序保留每个 key 的第一个 `enable` 条目，与账号的档位默认一致。内置
@@ -35,10 +35,10 @@ magpie plugin add magpie-qwenwork       # npm（发布后）
 
 `magpie plugin login qwenwork` 提供两种方式：
 
-| 方式                 | 前提                       | 说明                                                                                     |
-| -------------------- | -------------------------- | ---------------------------------------------------------------------------------------- |
-| 读取桌面端登录        | QwenWork 桌面端已登录一次   | 已有新鲜会话时立即返回；否则展示 QwenWork 登录页，应用登录后自动从 `auth-v2.dat` 采纳会话 |
-| 粘贴会话令牌          | `auth-v2.dat` 中的 token   | 通过铸造一次密钥来验证令牌（不消耗积分）；适合非标准安装                                  |
+| 方式           | 前提                      | 说明                                                                                      |
+| -------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
+| 读取桌面端登录 | QwenWork 桌面端已登录一次 | 已有新鲜会话时立即返回；否则展示 QwenWork 登录页，应用登录后自动从 `auth-v2.dat` 采纳会话 |
+| 粘贴会话令牌   | `auth-v2.dat` 中的 token  | 通过铸造一次密钥来验证令牌（不消耗积分）；适合非标准安装                                  |
 
 采纳的会话在每次铸造前都会重新读盘，只要桌面应用保持 `auth-v2.dat` 新鲜，插件无需重新登录。插件
 对 QwenWork 文件只读，从不调用刷新令牌流程（那是应用自己的职责）。

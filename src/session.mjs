@@ -82,7 +82,10 @@ export function createSessionStore({ options = {}, deps = {} } = {}) {
     }
 
     const found = await readState(settings, { force });
-    if (found.ok && isFresh(found.state.expiresAt, SESSION_FRESH_MARGIN_MS, now())) {
+    if (
+      found.ok &&
+      isFresh(found.state.expiresAt, SESSION_FRESH_MARGIN_MS, now())
+    ) {
       return {
         token: found.state.token,
         expiresAt: found.state.expiresAt,
@@ -107,7 +110,10 @@ export function createSessionStore({ options = {}, deps = {} } = {}) {
     const session = await sessionToken(settings);
     const payload = await fetchJson(mintUrl(settings.gatewayOrigin), {
       method: "POST",
-      headers: { ...desktopHeaders(session.token), "Content-Type": "application/json" },
+      headers: {
+        ...desktopHeaders(session.token),
+        "Content-Type": "application/json",
+      },
       body: {},
       fetchImpl,
       timeoutMs: MINT_TIMEOUT_MS,
@@ -129,7 +135,11 @@ export function createSessionStore({ options = {}, deps = {} } = {}) {
   }
 
   async function ensureFreshAccessKey(settings, { force = false } = {}) {
-    if (!force && cached && isFresh(cached.expiresAtMs, REFRESH_BEFORE_MS, now()))
+    if (
+      !force &&
+      cached &&
+      isFresh(cached.expiresAtMs, REFRESH_BEFORE_MS, now())
+    )
       return cached;
     if (inflight) return inflight;
 

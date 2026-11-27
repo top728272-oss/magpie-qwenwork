@@ -98,7 +98,8 @@ export function describeError(err, { lang = "zh" } = {}) {
   if (status >= 500) return vendor || t(lang, "errUpstream", { status });
   if (/timeout|timed out|AbortError/i.test(raw)) return t(lang, "errTimeout");
   if (/redirect/i.test(raw)) return t(lang, "errRedirect");
-  if (/unsupported-platform/i.test(raw)) return t(lang, "errUnsupportedPlatform");
+  if (/unsupported-platform/i.test(raw))
+    return t(lang, "errUnsupportedPlatform");
   return raw || t(lang, "errSignInExpired");
 }
 

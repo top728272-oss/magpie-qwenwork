@@ -41,7 +41,11 @@ export async function verifySessionToken(
   } catch (err) {
     if (err?.name === "HttpError" || err?.status) {
       if (err.status === 401 || err.status === 403)
-        return { ok: false, status: err.status, error: describeError(err, { lang }) };
+        return {
+          ok: false,
+          status: err.status,
+          error: describeError(err, { lang }),
+        };
       if (err.status === 503)
         return { ok: false, status: 503, error: describeError(err, { lang }) };
       return {

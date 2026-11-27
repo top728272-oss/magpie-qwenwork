@@ -13,7 +13,10 @@ export function maasBase(baseUrl) {
   return `${trimSlash(baseUrl || DEFAULT_MAAS_ORIGIN)}/v1`;
 }
 
-export function normalizeIncomingUrl(input, base = maasBase(DEFAULT_MAAS_ORIGIN)) {
+export function normalizeIncomingUrl(
+  input,
+  base = maasBase(DEFAULT_MAAS_ORIGIN),
+) {
   const raw =
     typeof input === "string" ? input : (input?.url ?? String(input ?? ""));
   let pathname = "";
@@ -27,7 +30,8 @@ export function normalizeIncomingUrl(input, base = maasBase(DEFAULT_MAAS_ORIGIN)
   }
 
   let suffix = CHAT_SUFFIX;
-  if (/\/messages\/count_tokens\/?$/i.test(pathname)) suffix = COUNT_TOKENS_SUFFIX;
+  if (/\/messages\/count_tokens\/?$/i.test(pathname))
+    suffix = COUNT_TOKENS_SUFFIX;
   else if (/\/messages\/?$/i.test(pathname)) suffix = MESSAGES_SUFFIX;
   else if (/\/responses\/?$/i.test(pathname)) suffix = RESPONSES_SUFFIX;
   else if (/\/chat\/completions\/?$/i.test(pathname)) suffix = CHAT_SUFFIX;

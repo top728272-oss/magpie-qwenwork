@@ -16,11 +16,31 @@ import { catalogEntry, catalogPayload, fakeFetch } from "./helpers.mjs";
 
 const SAMPLE = catalogPayload([
   catalogEntry({ key: "qwen3.8-flash", is_default: true, price_factor: 0.1 }),
-  catalogEntry({ key: "glm-5.3", i18n: { display_name: { en: "Pro" }, description: { en: "" } }, price_factor: 1, is_vl: false }),
+  catalogEntry({
+    key: "glm-5.3",
+    i18n: { display_name: { en: "Pro" }, description: { en: "" } },
+    price_factor: 1,
+    is_vl: false,
+  }),
   catalogEntry({ key: "gpt-6.1-sol" }),
-  catalogEntry({ key: "qwen4-max", format: "anthropic/messages", frontier: true, price_factor: 1.4 }),
-  catalogEntry({ key: "qwen3.8-flash", frontier: true, price_factor: 0.1, i18n: { display_name: { en: "Qwen3.8-Flash" }, description: { en: "" } } }),
-  catalogEntry({ key: "glm-5.3", frontier: true, price_factor: 1.3, i18n: { display_name: { en: "GLM-5.3" }, description: { en: "" } } }),
+  catalogEntry({
+    key: "qwen4-max",
+    format: "anthropic/messages",
+    frontier: true,
+    price_factor: 1.4,
+  }),
+  catalogEntry({
+    key: "qwen3.8-flash",
+    frontier: true,
+    price_factor: 0.1,
+    i18n: { display_name: { en: "Qwen3.8-Flash" }, description: { en: "" } },
+  }),
+  catalogEntry({
+    key: "glm-5.3",
+    frontier: true,
+    price_factor: 1.3,
+    i18n: { display_name: { en: "GLM-5.3" }, description: { en: "" } },
+  }),
   catalogEntry({ key: "glm-5.3-flash" }),
   catalogEntry({ key: "disabled-one", enable: false }),
   catalogEntry({ key: "" }),
@@ -39,7 +59,11 @@ test("normalizeEntry maps catalog fields and defaults", () => {
   assert.equal(entry.enable, true);
 
   const anthropic = normalizeEntry(
-    catalogEntry({ format: "anthropic/messages", is_reasoning: false, is_vl: false }),
+    catalogEntry({
+      format: "anthropic/messages",
+      is_reasoning: false,
+      is_vl: false,
+    }),
   );
   assert.equal(anthropic.format, "anthropic/messages");
   assert.equal(anthropic.reasoning, false);
@@ -57,13 +81,7 @@ test("normalizeCatalog drops disabled entries and keeps the first per key", () =
   assert.equal(catalog.schemaVersion, 2);
   assert.deepEqual(
     catalog.models.map((m) => m.key),
-    [
-      "qwen3.8-flash",
-      "glm-5.3",
-      "gpt-6.1-sol",
-      "qwen4-max",
-      "glm-5.3-flash",
-    ],
+    ["qwen3.8-flash", "glm-5.3", "gpt-6.1-sol", "qwen4-max", "glm-5.3-flash"],
   );
   assert.equal(catalog.duplicates, 2);
   assert.equal(duplicates.length, 2);
@@ -97,16 +115,22 @@ test("toMagpieModel follows the mapping contract", () => {
   assert.equal(chat.provider.npm, NPM_OPENAI_COMPATIBLE);
   assert.equal(chat.description, "Fast and light");
 
-  const priced = toMagpieModel(normalizeEntry(catalogEntry({ price_factor: 2.6 })));
+  const priced = toMagpieModel(
+    normalizeEntry(catalogEntry({ price_factor: 2.6 })),
+  );
   assert.match(priced.description, /Credits: 2.6x per request/);
 
-  const textOnly = toMagpieModel(normalizeEntry(catalogEntry({ is_vl: false })));
+  const textOnly = toMagpieModel(
+    normalizeEntry(catalogEntry({ is_vl: false })),
+  );
   assert.deepEqual(textOnly.modalities.input, ["text"]);
   assert.equal(textOnly.capabilities.attachment, false);
   assert.deepEqual(textOnly.capabilities.input, { text: true, image: false });
 
   const anthropic = toMagpieModel(
-    normalizeEntry(catalogEntry({ format: "anthropic/messages", price_factor: 1 })),
+    normalizeEntry(
+      catalogEntry({ format: "anthropic/messages", price_factor: 1 }),
+    ),
   );
   assert.equal(anthropic.provider.npm, NPM_ANTHROPIC);
 
@@ -142,15 +166,25 @@ test("fallbackModels matches the measured snapshot", () => {
   assert.equal(models["qwen4-max"].provider.npm, NPM_ANTHROPIC);
   assert.equal(models["minimax-m3.1-flash"].provider.npm, NPM_ANTHROPIC);
   assert.equal(models["kimi-k3.1-pro"].limit.context, 1000000);
-  assert.equal(models["glm-5.3-flash"].modalities.input.includes("image"), true);
-  assert.equal(models["deepseek-flash"].modalities.input.includes("image"), false);
+  assert.equal(
+    models["glm-5.3-flash"].modalities.input.includes("image"),
+    true,
+  );
+  assert.equal(
+    models["deepseek-flash"].modalities.input.includes("image"),
+    false,
+  );
 });
 
 test("fetchCatalog requests the chat-modes endpoint with the session token", async () => {
   const fetchImpl = fakeFetch(() => jsonResponseOk(SAMPLE));
-  const catalog = await fetchCatalog("https://gateway.qwenwork.ai/", "sess-token", {
-    fetchImpl,
-  });
+  const catalog = await fetchCatalog(
+    "https://gateway.qwenwork.ai/",
+    "sess-token",
+    {
+      fetchImpl,
+    },
+  );
   const call = fetchImpl.calls[0];
   assert.equal(call.url, "https://gateway.qwenwork.ai/api/desktop/chat-modes");
   const headers = new Headers(call.init.headers);
@@ -162,7 +196,10 @@ test("fetchCatalog requests the chat-modes endpoint with the session token", asy
 
 test("fetchCatalog rejects an empty catalog", async () => {
   const fetchImpl = fakeFetch(() => jsonResponseOk(catalogPayload([])));
-  await assert.rejects(() => fetchCatalog("https://gateway.qwenwork.ai", "t", { fetchImpl }), /empty catalog/);
+  await assert.rejects(
+    () => fetchCatalog("https://gateway.qwenwork.ai", "t", { fetchImpl }),
+    /empty catalog/,
+  );
 });
 
 function jsonResponseOk(body) {

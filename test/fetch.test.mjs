@@ -22,7 +22,10 @@ const NOW = 1_800_000_000_000;
 test("normalizeIncomingUrl rebuilds each family onto the minted base", () => {
   const base = "https://api1.qwenwork.ai/v1";
   assert.equal(
-    normalizeIncomingUrl("https://gateway.qwenwork.ai/v1/chat/completions?alt=sse", base),
+    normalizeIncomingUrl(
+      "https://gateway.qwenwork.ai/v1/chat/completions?alt=sse",
+      base,
+    ),
     `${base}/chat/completions?alt=sse`,
   );
   assert.equal(
@@ -38,22 +41,31 @@ test("normalizeIncomingUrl rebuilds each family onto the minted base", () => {
     `${base}/responses`,
   );
   assert.equal(
-    normalizeIncomingUrl("https://gateway.qwenwork.ai/v1/messages/count_tokens", base),
+    normalizeIncomingUrl(
+      "https://gateway.qwenwork.ai/v1/messages/count_tokens",
+      base,
+    ),
     `${base}/messages/count_tokens`,
   );
-  assert.equal(
-    normalizeIncomingUrl("/messages", base),
-    `${base}/messages`,
-  );
+  assert.equal(normalizeIncomingUrl("/messages", base), `${base}/messages`);
 });
 
 test("maasBase trims slashes and appends /v1", () => {
-  assert.equal(maasBase("https://api1.qwenwork.ai/"), "https://api1.qwenwork.ai/v1");
-  assert.equal(maasBase("https://api2.qwenwork.ai"), "https://api2.qwenwork.ai/v1");
+  assert.equal(
+    maasBase("https://api1.qwenwork.ai/"),
+    "https://api1.qwenwork.ai/v1",
+  );
+  assert.equal(
+    maasBase("https://api2.qwenwork.ai"),
+    "https://api2.qwenwork.ai/v1",
+  );
 });
 
 test("modelIdFromBody reads the model field and tolerates garbage", () => {
-  assert.equal(modelIdFromBody(JSON.stringify({ model: "glm-5.3" })), "glm-5.3");
+  assert.equal(
+    modelIdFromBody(JSON.stringify({ model: "glm-5.3" })),
+    "glm-5.3",
+  );
   assert.equal(modelIdFromBody("{}"), "");
   assert.equal(modelIdFromBody("not json"), "");
   assert.equal(modelIdFromBody(undefined), "");
@@ -120,21 +132,29 @@ test("loader rebuilds the URL onto the minted base and injects the access key", 
   const fetchImpl = fakeFetch((url) =>
     url.includes("/chat/completions")
       ? jsonResponse({ ok: true })
-      : mintResponse({ accessKey: "key-a", baseUrl: "https://api1.qwenwork.ai" }),
+      : mintResponse({
+          accessKey: "key-a",
+          baseUrl: "https://api1.qwenwork.ai",
+        }),
   );
   const loader = makeLoader({ fetchImpl, doc });
 
-  const res = await loader.fetch("https://gateway.qwenwork.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": "drop-me",
+  const res = await loader.fetch(
+    "https://gateway.qwenwork.ai/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": "drop-me",
+      },
+      body: JSON.stringify({ model: "glm-5.3", messages: [] }),
     },
-    body: JSON.stringify({ model: "glm-5.3", messages: [] }),
-  });
+  );
 
   assert.equal(res.status, 200);
-  const chat = fetchImpl.calls.find((call) => call.url.includes("/chat/completions"));
+  const chat = fetchImpl.calls.find((call) =>
+    call.url.includes("/chat/completions"),
+  );
   assert.equal(chat.url, "https://api1.qwenwork.ai/v1/chat/completions");
   const headers = new Headers(chat.init.headers);
   assert.equal(headers.get("authorization"), "Bearer key-a");
@@ -150,16 +170,24 @@ test("loader routes messages requests to the minted base as well", async () => {
   const fetchImpl = fakeFetch((url) =>
     url.includes("/messages")
       ? jsonResponse({ ok: true })
-      : mintResponse({ accessKey: "key-a", baseUrl: "https://api2.qwenwork.ai" }),
+      : mintResponse({
+          accessKey: "key-a",
+          baseUrl: "https://api2.qwenwork.ai",
+        }),
   );
   const loader = makeLoader({ fetchImpl, doc });
-  const res = await loader.fetch("https://gateway.qwenwork.ai/v1/messages?beta=1", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ model: "minimax-m3.1-flash", messages: [] }),
-  });
+  const res = await loader.fetch(
+    "https://gateway.qwenwork.ai/v1/messages?beta=1",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ model: "minimax-m3.1-flash", messages: [] }),
+    },
+  );
   assert.equal(res.status, 200);
-  const messages = fetchImpl.calls.find((call) => call.url.includes("/messages"));
+  const messages = fetchImpl.calls.find((call) =>
+    call.url.includes("/messages"),
+  );
   assert.equal(messages.url, "https://api2.qwenwork.ai/v1/messages?beta=1");
 });
 
@@ -167,7 +195,8 @@ test("loader re-mints once on a 401 and retries with the new key and base", asyn
   const doc = makeAuthDoc({ token: makeSessionJwt() });
   let chatCalls = 0;
   const fetchImpl = fakeFetch((url) => {
-    if (!url.includes("/chat/completions")) return mintResponse({ accessKey: "key-a" });
+    if (!url.includes("/chat/completions"))
+      return mintResponse({ accessKey: "key-a" });
     chatCalls += 1;
     if (chatCalls === 1) {
       return jsonResponse({ error: "expired" }, { status: 401 });
@@ -180,22 +209,28 @@ test("loader re-mints once on a 401 and retries with the new key and base", asyn
       mints += 1;
       return mintResponse({
         accessKey: mints === 1 ? "key-a" : "key-b",
-        baseUrl: mints === 1 ? "https://api1.qwenwork.ai" : "https://api9.qwenwork.ai",
+        baseUrl:
+          mints === 1 ? "https://api1.qwenwork.ai" : "https://api9.qwenwork.ai",
       });
     }
     return fetchImpl(url, init);
   };
   const loader = makeLoader({ fetchImpl: wrapped, doc });
 
-  const res = await loader.fetch("https://gateway.qwenwork.ai/v1/chat/completions", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ model: "glm-5.3", messages: [] }),
-  });
+  const res = await loader.fetch(
+    "https://gateway.qwenwork.ai/v1/chat/completions",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ model: "glm-5.3", messages: [] }),
+    },
+  );
 
   assert.equal(res.status, 200);
   assert.equal(chatCalls, 2);
-  const retry = fetchImpl.calls.filter((call) => call.url.includes("/chat/completions"))[1];
+  const retry = fetchImpl.calls.filter((call) =>
+    call.url.includes("/chat/completions"),
+  )[1];
   assert.equal(retry.url, "https://api9.qwenwork.ai/v1/chat/completions");
   const headers = new Headers(retry.init.headers);
   assert.equal(headers.get("authorization"), "Bearer key-b");
@@ -210,11 +245,14 @@ test("loader stamps the sign-in header when the retry also fails with 401", asyn
       : mintResponse({ accessKey: "key-a" }),
   );
   const loader = makeLoader({ fetchImpl, doc });
-  const res = await loader.fetch("https://gateway.qwenwork.ai/v1/chat/completions", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ model: "glm-5.3", messages: [] }),
-  });
+  const res = await loader.fetch(
+    "https://gateway.qwenwork.ai/v1/chat/completions",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ model: "glm-5.3", messages: [] }),
+    },
+  );
   assert.equal(res.status, 401);
   assert.equal(res.headers.get("x-magpie-sign-in"), "expired");
 });
@@ -242,6 +280,7 @@ test("loader surfaces the sign-in error when re-minting fails with 401", async (
 });
 
 function makeSessionJwt() {
-  const b64 = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  const b64 = (value) =>
+    Buffer.from(JSON.stringify(value)).toString("base64url");
   return `${b64({ alg: "none" })}.${b64({ exp: 9999999999, email: "user@example.com" })}.sig`;
 }
