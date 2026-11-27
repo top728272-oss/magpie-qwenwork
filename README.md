@@ -4,7 +4,7 @@ A magpie provider plugin that makes **QwenWork** desktop subscription models ava
 agent as `qwenwork/<model>`. It adopts the signed-in QwenWork desktop app account, mints a MaaS
 access key from the gateway, and routes each model to the endpoint family it speaks.
 
-> Status: v0.2.0. 107 offline tests green on node 20/22/24 and bun. Live checks on 2026-11-27 passed
+> Status: v0.3.0. 110 offline tests green on node 20/22/24 and bun. Live checks on 2026-11-27 passed
 > for credential adoption, minting, chat streaming, tool calls, Anthropic Messages, the quota card
 > and the daily check-in hook.
 
@@ -72,17 +72,18 @@ a re-login).
    rebuilds the request URL from the current mint (the incoming host is never trusted), injects
    `Authorization: Bearer`, and on a 401 re-mints once and retries once before flagging the response
    with `X-Magpie-Sign-In: expired`.
-4. **Quota**: the card merges four gateway sources, one call each, cached for 60 seconds:
-   `GET /api/v1/adapter/user/balance` (precise remaining pool), `GET /api/v2/quota/usage` (optional
-   daily/monthly/add-on credit breakdown parsed from `daily_quota`-class keys, when the deployment
-   populates them), `GET /api/v1/adapter/user/wallets` (optional daily/monthly/longterm buckets;
-   attempted once, the 404 cached, skipped afterwards) and `GET /api/v1/adapter/user/account-context`
-   (plan name, refresh date, fallback pool). Bucketed plans get expiring windows
-   (`Daily 60/100 (+5/day)`, `Plan 400/500`, `Add-on 7 left`); the measured Free/global state
-   degrades to a single `699.97 credits remaining` pool plus a display-only minted-key lifetime
-   window.
+4. **Quota**: the card merges five sources, one call each, cached for 60 seconds:
+   `GET /api/v1/adapter/user/balance` on the gateway (precise remaining pool), `GET /api/v2/quota/usage`
+   (optional daily/monthly/add-on credit breakdown parsed from `daily_quota`-class keys, when the
+   deployment populates them), `GET /user/v2/wallets` on `qwenwork.ai` (the web user-service: real
+   per-credit buckets with `valid_from`/`valid_to`, falling back to `/user/wallets` totals; skipped
+   after a permanent miss) and `GET /api/v1/adapter/user/account-context` (plan name, refresh date,
+   fallback pool). Bucketed credit pools get expiring windows (`Daily 199.95 credits` resetting at
+   the wallet's `valid_to`, `Plan`, `Add-on`); the pool still always shows as `699.95 credits
+   remaining`, plus a display-only minted-key lifetime window.
 
-Credentials travel only to `gateway.qwenwork.ai` and the minted `base_url`. Tokens are never logged
+Credentials travel only to `gateway.qwenwork.ai`, the minted `base_url`, and `qwenwork.ai` (the
+web user-service that serves the per-credit wallet buckets). Tokens are never logged
 (masked as a sha256 prefix plus length). All requests use `redirect: "error"`.
 
 ## Options

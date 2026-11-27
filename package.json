@@ -1,6 +1,6 @@
 {
   "name": "magpie-qwenwork",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "magpie provider plugin: QwenWork subscription models (Qwen, GLM, GPT, DeepSeek, Kimi, MiniMax) through the desktop MaaS gateway",
   "type": "module",
   "main": "./index.mjs",

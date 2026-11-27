@@ -64,8 +64,15 @@ test(
     const usage = await hooks.auth.usage(getAuth);
     assert.ok(usage.plan);
     assert.ok(Number.isFinite(usage.balance));
-    assert.equal(usage.windows[0].unit, "credits");
-    assert.match(usage.windows[0].display, /remaining/);
+    const pool = usage.windows.find((w) => w.name === "Credits");
+    assert.ok(pool, "credits pool window missing");
+    assert.equal(pool.unit, "credits");
+    assert.match(pool.display, /credits remaining/);
+    const daily = usage.windows.find((w) => w.name === "Daily");
+    if (daily) {
+      assert.equal(daily.unit, "credits");
+      assert.ok(daily.resetsAt, "daily bucket missing its expiry");
+    }
 
     const checkin = await hooks.auth.checkin(getAuth);
     assert.ok(

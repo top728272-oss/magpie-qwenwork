@@ -11,7 +11,7 @@ import {
   HOME_ENV_NAME,
   LOCAL_STATE_FILE,
 } from "./constants.mjs";
-import { toNumber } from "./util.mjs";
+import { parseTimestamp, toNumber } from "./util.mjs";
 
 const DPAPI_PREFIX = "DPAPI";
 const POWERSHELL_SCRIPT =
@@ -266,13 +266,7 @@ export function parseAuthDocument(raw, path = "") {
   return doc;
 }
 
-export function parseTimestamp(value) {
-  if (typeof value === "number") return toNumber(value, 0);
-  const raw = String(value ?? "").trim();
-  if (!raw) return 0;
-  const ms = Date.parse(raw);
-  return Number.isFinite(ms) ? ms : 0;
-}
+export { parseTimestamp };
 
 export function sessionStateOf(doc) {
   const user = doc?.user && typeof doc.user === "object" ? doc.user : {};

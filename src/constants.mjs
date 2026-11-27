@@ -1,7 +1,8 @@
 export const PROVIDER = "qwenwork";
-export const VERSION = "0.2.0";
+export const VERSION = "0.3.0";
 
 export const GATEWAY = "https://gateway.qwenwork.ai";
+export const WEB_ORIGIN = "https://qwenwork.ai";
 export const DEFAULT_MAAS_ORIGIN = "https://api1.qwenwork.ai";
 export const MINT_PATH = "/api/desktop-sessions";
 export const CATALOG_PATH = "/api/desktop/chat-modes";
@@ -9,7 +10,8 @@ export const ACCOUNT_CONTEXT_PATH = "/api/v1/adapter/user/account-context";
 export const ACCOUNT_CONTEXT_INCLUDE = "user,plan,quota";
 export const BALANCE_PATH = "/api/v1/adapter/user/balance";
 export const QUOTA_USAGE_PATH = "/api/v2/quota/usage";
-export const WALLETS_PATH = "/api/v1/adapter/user/wallets";
+export const WALLETS_V1_PATH = "/user/wallets";
+export const WALLETS_V2_PATH = "/user/v2/wallets";
 export const CLAIM_PATH = "/api/v1/adapter/user/daily-credit-notice/claim";
 
 export const DESKTOP_USER_AGENT = "qoderwork/2.0.1";

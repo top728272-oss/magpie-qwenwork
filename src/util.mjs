@@ -58,6 +58,14 @@ export function isFresh(expiresAt, marginMs, now = Date.now()) {
   return at - now > marginMs;
 }
 
+export function parseTimestamp(value) {
+  if (typeof value === "number") return toNumber(value, 0);
+  const raw = String(value ?? "").trim();
+  if (!raw) return 0;
+  const ms = Date.parse(raw);
+  return Number.isFinite(ms) ? ms : 0;
+}
+
 export function formatDuration(ms, lang = "zh") {
   const total = Math.max(0, Math.floor(toNumber(ms, 0) / 1000));
   const days = Math.floor(total / 86400);

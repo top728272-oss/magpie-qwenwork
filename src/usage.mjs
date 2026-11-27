@@ -4,11 +4,13 @@ import {
   BALANCE_PATH,
   QUOTA_USAGE_PATH,
   USAGE_TIMEOUT_MS,
-  WALLETS_PATH,
+  WEB_ORIGIN,
+  WALLETS_V1_PATH,
+  WALLETS_V2_PATH,
 } from "./constants.mjs";
 import { desktopHeaders, fetchJson } from "./http.mjs";
 import { t } from "./i18n.mjs";
-import { formatDuration, toNumber } from "./util.mjs";
+import { formatDuration, parseTimestamp, toNumber } from "./util.mjs";
 
 const BUCKET_KEYS = {
   daily: ["daily_quota", "dailyQuota", "daily_credits", "dailyCredits"],
@@ -81,17 +83,108 @@ export function normalizeBalance(payload) {
   };
 }
 
-export function normalizeWallets(payload) {
-  if (!payload || typeof payload !== "object") return null;
-  const bucket = (raw) => (raw && typeof raw === "object" ? toNumber(raw.total_balance, 0) : null);
-  const wallets = {
-    daily: bucket(payload.daily_credits),
-    monthly: bucket(payload.monthly_credits),
-    longterm: bucket(payload.longterm_credits),
+export function parseWalletItems(payload) {
+  const items = payload?.data?.items;
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((raw) => {
+      const balance = toNumber(raw?.balance, Number.NaN);
+      if (!Number.isFinite(balance)) return null;
+      return {
+        creditName: String(raw?.credit_name ?? "").trim(),
+        periodType: String(raw?.period_type ?? "").trim(),
+        source: String(raw?.source ?? "").trim(),
+        balance,
+        validFrom: parseTimestamp(raw?.valid_from),
+        validTo: parseTimestamp(raw?.valid_to),
+      };
+    })
+    .filter(Boolean);
+}
+
+function bucketKey(periodType) {
+  if (periodType === "daily_credits") return "daily";
+  if (periodType === "monthly_credits") return "monthly";
+  if (periodType === "longterm_credits" || periodType === "other_credits")
+    return "longterm";
+  return "";
+}
+
+export function normalizeWalletBuckets(items) {
+  const buckets = { daily: null, monthly: null, longterm: null };
+  for (const item of items) {
+    const key = bucketKey(item.periodType);
+    if (!key) continue;
+    const current = buckets[key];
+    if (!current) {
+      buckets[key] = {
+        balance: item.balance,
+        validTo: item.validTo,
+        count: 1,
+      };
+      continue;
+    }
+    current.balance += item.balance;
+    current.count += 1;
+    if (current.validTo && item.validTo) current.validTo = Math.min(current.validTo, item.validTo);
+    else current.validTo = current.validTo || item.validTo;
+  }
+  const any = buckets.daily || buckets.monthly || buckets.longterm;
+  return any ? buckets : null;
+}
+
+export function normalizeWalletTotals(payload) {
+  if (!payload?.data || typeof payload.data !== "object") return null;
+  const total = (raw) => {
+    if (!raw || typeof raw !== "object") return null;
+    const n = toNumber(raw.total_balance, Number.NaN);
+    return Number.isFinite(n) && n > 0 ? { balance: n, validTo: null } : null;
   };
-  return wallets.daily !== null || wallets.monthly !== null || wallets.longterm !== null
-    ? wallets
-    : null;
+  const buckets = {
+    daily: total(payload.data.daily_credits),
+    monthly: total(payload.data.monthly_credits),
+    longterm: total(payload.data.longterm_credits),
+  };
+  return buckets.daily || buckets.monthly || buckets.longterm ? buckets : null;
+}
+
+export async function fetchUserWallets(
+  token,
+  {
+    fetchImpl = globalThis.fetch,
+    timeoutMs = USAGE_TIMEOUT_MS,
+    origin = WEB_ORIGIN,
+  } = {},
+) {
+  const base = String(origin ?? WEB_ORIGIN).trim().replace(/\/+$/, "");
+  try {
+    const payload = await fetchJson(`${base}${WALLETS_V2_PATH}?lifecycle=active`, {
+      headers: desktopHeaders(token),
+      fetchImpl,
+      timeoutMs,
+    });
+    const buckets = normalizeWalletBuckets(parseWalletItems(payload));
+    if (buckets) return { ok: true, buckets, via: "v2" };
+  } catch (err) {
+    const status = toNumber(err?.status, 0);
+    if (status !== 0 && status < 500) {
+      return { ok: false, permanent: status === 404 };
+    }
+  }
+  try {
+    const payload = await fetchJson(`${base}${WALLETS_V1_PATH}`, {
+      headers: desktopHeaders(token),
+      fetchImpl,
+      timeoutMs,
+    });
+    const buckets = normalizeWalletTotals(payload);
+    if (buckets) return { ok: true, buckets, via: "v1" };
+    return { ok: false, permanent: true };
+  } catch (err) {
+    const status = toNumber(err?.status, 0);
+    if (status === 404 || status === 403) return { ok: false, permanent: true };
+    return { ok: false, permanent: false, error: String(err?.message ?? err) };
+  }
 }
 
 export function mintWindow({ mint, lang, now = Date.now() }) {
@@ -121,6 +214,11 @@ function bucketWindow({ name, amount, resetsAt, span, lang, aside = false }) {
   if (span) window.span = span;
   if (aside) window.aside = true;
   return window;
+}
+
+export function isoOrNull(ms) {
+  const at = toNumber(ms, 0);
+  return at > 0 ? new Date(at).toISOString() : null;
 }
 
 export function buildUsage({
@@ -158,12 +256,12 @@ export function buildUsage({
       resetsAt: nextRefreshAt || undefined,
       span: DAY_SPAN_SECONDS,
     });
-  } else if (wallets?.daily !== null && wallets?.daily !== undefined) {
+  } else if (wallets?.daily) {
     usage.windows.push(
       bucketWindow({
         name: t(lang, "usageDailyName"),
-        amount: wallets.daily,
-        resetsAt: nextRefreshAt,
+        amount: wallets.daily.balance,
+        resetsAt: isoOrNull(wallets.daily.validTo) || nextRefreshAt,
         span: DAY_SPAN_SECONDS,
         lang,
       }),
@@ -183,12 +281,12 @@ export function buildUsage({
       resetsAt: planExpiresAt || undefined,
       span: MONTH_SPAN_SECONDS,
     });
-  } else if (wallets?.monthly !== null && wallets?.monthly !== undefined) {
+  } else if (wallets?.monthly) {
     usage.windows.push(
       bucketWindow({
         name: t(lang, "usagePlanName"),
-        amount: wallets.monthly,
-        resetsAt: planExpiresAt,
+        amount: wallets.monthly.balance,
+        resetsAt: isoOrNull(wallets.monthly.validTo) || planExpiresAt,
         span: MONTH_SPAN_SECONDS,
         lang,
       }),
@@ -205,11 +303,12 @@ export function buildUsage({
       }),
       aside: true,
     });
-  } else if (wallets?.longterm !== null && wallets?.longterm !== undefined) {
+  } else if (wallets?.longterm) {
     usage.windows.push(
       bucketWindow({
         name: t(lang, "usageAddOnName"),
-        amount: wallets.longterm,
+        amount: wallets.longterm.balance,
+        resetsAt: isoOrNull(wallets.longterm.validTo),
         lang,
         aside: true,
       }),
@@ -286,23 +385,4 @@ export function fetchQuotaUsage(
     fetchImpl,
     timeoutMs,
   });
-}
-
-export async function fetchWallets(
-  origin,
-  token,
-  { fetchImpl = globalThis.fetch, timeoutMs = USAGE_TIMEOUT_MS } = {},
-) {
-  try {
-    const payload = await fetchJson(
-      `${String(origin ?? "").trim().replace(/\/+$/, "")}${WALLETS_PATH}`,
-      { headers: desktopHeaders(token), fetchImpl, timeoutMs },
-    );
-    const buckets = normalizeWallets(payload);
-    return buckets ? { ok: true, buckets } : { ok: false, permanent: true };
-  } catch (err) {
-    const status = toNumber(err?.status, 0);
-    if (status === 404 || status === 403) return { ok: false, permanent: true };
-    return { ok: false, permanent: false, error: String(err?.message ?? err) };
-  }
 }
