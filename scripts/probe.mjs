@@ -1,7 +1,8 @@
-import { fetchCatalog, fallbackModels, catalogSummary } from "../src/catalog.mjs";
+import { fetchCatalog, fallbackModels } from "../src/catalog.mjs";
 import { readAuthDocument } from "../src/credentials.mjs";
 import { formatDuration, maskToken, tokenClaims } from "../src/util.mjs";
 import { verifySessionToken } from "../src/auth.mjs";
+import { fetchBalance, normalizeBalance, parseCreditBreakdown, fetchQuotaUsage } from "../src/usage.mjs";
 import { GATEWAY } from "../src/constants.mjs";
 
 const argv = process.argv.slice(2);
@@ -72,8 +73,22 @@ if (argv.includes("--live")) {
       console.log(
         `  live mint: ${verified.ok ? "OK" : `FAILED (${verified.error})`}${verified.baseUrl ? ` base_url=${verified.baseUrl}` : ""}`,
       );
+      const balance = normalizeBalance(
+        await fetchBalance(GATEWAY, found.state.token, {}),
+      );
+      console.log(
+        `  live balance: ${balance.balance ?? "unknown"} credits (frozen ${balance.freezeCredit})`,
+      );
+      const breakdown = parseCreditBreakdown(
+        await fetchQuotaUsage(GATEWAY, found.state.token, {}),
+      );
+      console.log(
+        `  live breakdown: ${breakdown ? "bucketed (daily/monthly/other)" : "single pool"}`,
+      );
       const catalog = await fetchCatalog(GATEWAY, found.state.token, {});
-      console.log(`  live catalog: ${catalogSummary(catalog.models)}`);
+      console.log(
+        `  live catalog: ${catalog.models.length} models (${catalog.models.filter((m) => m.format === "anthropic/messages").length} anthropic)`,
+      );
       for (const model of catalog.models) {
         console.log(
           `    ${model.key.padEnd(22)} ${model.format.padEnd(22)} ${String(model.priceFactor).padEnd(5)} ${model.name}`,

@@ -16,17 +16,24 @@ import {
   USAGE_TTL_OK_MS,
   VERSION,
 } from "./src/constants.mjs";
-import {
-  fetchAccountContext,
-  normalizeAccountContext,
-} from "./src/auth.mjs";
+import { claimDailyCredit, checkinOutcome } from "./src/checkin.mjs";
 import { createLoader, sessionHeaders } from "./src/fetch.mjs";
 import { ICON_DATA_URI } from "./src/icon.mjs";
 import { resolveLang, t } from "./src/i18n.mjs";
 import { createMethods } from "./src/login.mjs";
 import { accountIdFor, resolveAccountSettings } from "./src/modes.mjs";
 import { createSessionStore } from "./src/session.mjs";
-import { buildUsage, buildUsageError } from "./src/usage.mjs";
+import {
+  buildUsage,
+  buildUsageError,
+  fetchAccountContext,
+  fetchBalance,
+  fetchQuotaUsage,
+  fetchWallets,
+  normalizeAccountContext,
+  normalizeBalance,
+  parseCreditBreakdown,
+} from "./src/usage.mjs";
 import { describeError } from "./src/util.mjs";
 
 export function resolveOptions(input, options) {
@@ -125,6 +132,8 @@ export const QwenworkPlugin = async (input = {}, options = {}) => {
   };
 
   const usageCache = new Map();
+  const walletsDead = new Set();
+  const checkinDead = new Set();
 
   async function usage(getAuth) {
     const auth = await getAuth();
@@ -137,13 +146,47 @@ export const QwenworkPlugin = async (input = {}, options = {}) => {
     let value;
     try {
       const session = await sessions.sessionToken(settings);
-      const payload = await fetchAccountContext(
-        settings.gatewayOrigin,
-        session.token,
-        { fetchImpl, timeoutMs: USAGE_TIMEOUT_MS },
-      );
-      const context = normalizeAccountContext(payload);
-      value = buildUsage({ context, mint: sessions.peek(), lang });
+      const [context, balance, breakdown, wallets] = await Promise.all([
+        fetchAccountContext(settings.gatewayOrigin, session.token, {
+          fetchImpl,
+          timeoutMs: USAGE_TIMEOUT_MS,
+        })
+          .then(normalizeAccountContext)
+          .catch(() => null),
+        fetchBalance(settings.gatewayOrigin, session.token, {
+          fetchImpl,
+          timeoutMs: USAGE_TIMEOUT_MS,
+        })
+          .then(normalizeBalance)
+          .catch(() => null),
+        fetchQuotaUsage(settings.gatewayOrigin, session.token, {
+          fetchImpl,
+          timeoutMs: USAGE_TIMEOUT_MS,
+        })
+          .then(parseCreditBreakdown)
+          .catch(() => null),
+        walletsDead.has(key)
+          ? Promise.resolve(null)
+          : fetchWallets(settings.gatewayOrigin, session.token, {
+              fetchImpl,
+              timeoutMs: USAGE_TIMEOUT_MS,
+            }).then((result) => {
+              if (!result.ok && result.permanent) walletsDead.add(key);
+              return result.ok ? result.buckets : null;
+            }),
+      ]);
+
+      if (!context && !balance && !breakdown && !wallets) {
+        throw new Error("gateway usage endpoints unavailable");
+      }
+      value = buildUsage({
+        balance: balance?.balance ?? null,
+        breakdown,
+        wallets,
+        context,
+        mint: sessions.peek(),
+        lang,
+      });
       usageCache.set(key, { at: Date.now(), ttl: USAGE_TTL_OK_MS, value });
     } catch (err) {
       await log(
@@ -154,6 +197,35 @@ export const QwenworkPlugin = async (input = {}, options = {}) => {
       usageCache.set(key, { at: Date.now(), ttl: USAGE_TTL_ERR_MS, value });
     }
     return value;
+  }
+
+  async function checkin(getAuth) {
+    const auth = await getAuth();
+    const settings = resolveAccountSettings(auth, opts);
+    const key = accountIdFor({ email: settings.email, token: settings.key });
+
+    if (checkinDead.has(key)) {
+      return { outcome: "ineligible", message: t(lang, "checkinUnavailable") };
+    }
+
+    let result;
+    try {
+      const session = await sessions.sessionToken(settings);
+      result = await claimDailyCredit(settings.gatewayOrigin, session.token, {
+        fetchImpl,
+        timeoutMs: USAGE_TIMEOUT_MS,
+      });
+    } catch (err) {
+      return { outcome: "failed", message: describeError(err, { lang }) };
+    }
+
+    const out = checkinOutcome(result, { lang });
+    if (out.unavailable) {
+      checkinDead.add(key);
+      delete out.unavailable;
+    }
+    if (out.outcome === "claimed") usageCache.delete(key);
+    return out;
   }
 
   return {
@@ -173,6 +245,7 @@ export const QwenworkPlugin = async (input = {}, options = {}) => {
       loader: async (getAuth) =>
         createLoader(getAuth, opts, { fetchImpl, sessions }),
       usage,
+      checkin,
       icon: ICON_DATA_URI,
     },
 
@@ -192,11 +265,18 @@ export const _internal = {
   createMethods,
   createSessionStore,
   createLoader,
+  claimDailyCredit,
+  checkinOutcome,
   fetchAccountContext,
+  fetchBalance,
+  fetchQuotaUsage,
+  fetchWallets,
   fetchCatalog,
   fallbackModels,
   modelsFromCatalog,
   normalizeAccountContext,
+  normalizeBalance,
+  parseCreditBreakdown,
   buildUsage,
   buildUsageError,
   sessionHeaders,

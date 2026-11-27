@@ -217,7 +217,7 @@ const usage = await hooks.auth.usage(getAuth);
 record(
   "usage",
   Boolean(usage?.plan) && Number.isFinite(usage?.balance),
-  `${usage?.plan ?? "-"} | ${usage?.windows?.[0]?.display ?? "-"}`,
+  `${usage?.plan ?? "-"} | ${usage?.windows?.[0]?.display ?? "-"} | ${usage?.windows?.length ?? 0} windows`,
   { usage },
 );
 
@@ -226,6 +226,14 @@ record(
   "session-meter",
   Boolean(mintMeter),
   mintMeter?.display ?? "no minted key window",
+);
+
+const checkin = await hooks.auth.checkin(getAuth);
+record(
+  "checkin",
+  ["claimed", "ineligible", "failed"].includes(checkin?.outcome),
+  `${checkin?.outcome ?? "-"}: ${checkin?.message ?? "-"}`,
+  { checkin },
 );
 
 const ok = checks.every((check) => check.ok);
@@ -253,6 +261,7 @@ const artifact = {
     : null,
   exposed: { count: ids.length, families: byFamily },
   usage,
+  checkin,
   checks,
   ok,
 };
