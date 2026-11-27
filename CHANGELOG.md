@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.0 - 2026-11-27
+
+### Added
+
+- Multi-window quota card fed by four gateway calls: precise balance (`/api/v1/adapter/user/balance`),
+  the `creditBreakdown` parsed from `/api/v2/quota/usage` optional keys (`daily_quota`,
+  `monthlyQuota`, `subscription_quota`, `other_credits`, `daily_refresh_amount`, `expires_at`),
+  optional wallet buckets (`/api/v1/adapter/user/wallets`, attempted once, the 404 cached and
+  skipped thereafter), and account-context for plan name, refresh date and fallback pool. Bucketed
+  plans get expiring `Daily` / `Plan` / `Add-on` windows; the measured single-pool state keeps the
+  `Credits` card. The minted-key lifetime window stays.
+- `auth.checkin` hook mapped to the daily-credit-notice claim: `claimed` / `ineligible` (including
+  404/403, cached per session so the endpoint is never retried) / `failed`, matching the host's
+  checkin contract. Verified 404-ineligible on the measured Free/global account.
+- probe `--live` now prints the precise balance and whether the deployment serves a bucketed
+  breakdown; e2e gains a `checkin` check and the usage check reports the window count.
+
 ## 0.1.0 - 2026-11-27
 
 ### Fixed

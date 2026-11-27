@@ -1,11 +1,7 @@
-import {
-  ACCOUNT_CONTEXT_INCLUDE,
-  ACCOUNT_CONTEXT_PATH,
-  MINT_TIMEOUT_MS,
-  USAGE_TIMEOUT_MS,
-} from "./constants.mjs";
+import { MINT_TIMEOUT_MS } from "./constants.mjs";
 import { desktopHeaders, fetchJson } from "./http.mjs";
 import { accountIdFor } from "./modes.mjs";
+import { fetchAccountContext, normalizeAccountContext } from "./usage.mjs";
 import { describeError, trimSlash } from "./util.mjs";
 
 export function successResult({ token, email = "", plan = "", mode = "" }) {
@@ -32,32 +28,6 @@ export function mintAccessToken(origin, token, { fetchImpl, timeoutMs } = {}) {
     fetchImpl,
     timeoutMs: timeoutMs ?? MINT_TIMEOUT_MS,
   });
-}
-
-export async function fetchAccountContext(
-  origin,
-  token,
-  { fetchImpl = globalThis.fetch, timeoutMs = USAGE_TIMEOUT_MS } = {},
-) {
-  return fetchJson(
-    `${trimSlash(origin)}${ACCOUNT_CONTEXT_PATH}?include=${ACCOUNT_CONTEXT_INCLUDE}`,
-    { headers: desktopHeaders(token), fetchImpl, timeoutMs },
-  );
-}
-
-export function normalizeAccountContext(payload) {
-  const data = payload?.data && typeof payload.data === "object" ? payload.data : {};
-  const rawRemaining = data?.quota?.remaining;
-  const remaining =
-    rawRemaining === null || rawRemaining === undefined
-      ? null
-      : Number(rawRemaining);
-  return {
-    email: String(data?.user?.email ?? "").trim(),
-    plan: String(data?.plan?.name ?? "").trim(),
-    remaining: Number.isFinite(remaining) ? remaining : null,
-    quotaExceeded: Boolean(data?.quota?.exceeded),
-  };
 }
 
 export async function verifySessionToken(

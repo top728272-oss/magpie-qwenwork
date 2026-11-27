@@ -66,5 +66,12 @@ test(
     assert.ok(Number.isFinite(usage.balance));
     assert.equal(usage.windows[0].unit, "credits");
     assert.match(usage.windows[0].display, /remaining/);
+
+    const checkin = await hooks.auth.checkin(getAuth);
+    assert.ok(
+      ["claimed", "ineligible", "failed"].includes(checkin?.outcome),
+      `unexpected checkin outcome: ${checkin?.outcome}`,
+    );
+    assert.ok(checkin.message);
   },
 );
