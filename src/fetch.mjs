@@ -39,16 +39,6 @@ export function normalizeIncomingUrl(
   return `${trimSlash(base)}${suffix}${search}`;
 }
 
-export function modelIdFromBody(body) {
-  if (typeof body !== "string" || body.length === 0) return "";
-  try {
-    const parsed = JSON.parse(body);
-    return String(parsed?.model ?? "").trim();
-  } catch {
-    return "";
-  }
-}
-
 export async function guardResponse(res) {
   if (res.status !== 401) return res;
   const body = await res.text();

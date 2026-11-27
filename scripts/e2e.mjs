@@ -215,11 +215,15 @@ if (messagesModel) {
 }
 
 const usage = await hooks.auth.usage(getAuth);
+const usageForArtifact = {
+  ...usage,
+  user: usage?.user ? maskEmail(usage.user) : usage?.user,
+};
 record(
   "usage",
   Boolean(usage?.plan) && Number.isFinite(usage?.balance),
   `${usage?.plan ?? "-"} | ${usage?.windows?.[0]?.display ?? "-"} | ${usage?.windows?.length ?? 0} windows`,
-  { usage },
+  { usage: usageForArtifact },
 );
 
 const mintMeter = usage?.windows?.find((w) => w.name === "MaaS access key");
@@ -261,7 +265,7 @@ const artifact = {
       }
     : null,
   exposed: { count: ids.length, families: byFamily },
-  usage,
+  usage: usageForArtifact,
   checkin,
   checks,
   ok,

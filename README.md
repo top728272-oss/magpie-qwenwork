@@ -47,7 +47,9 @@ In the app: **Plugins -> Add plugin** -> paste the folder path or package name.
 | **Paste a session token** | the session token from `auth-v2.dat`    | validates the token by minting a MaaS key (costs no credits); useful for non-standard installs                                                          |
 
 The adopted session is reread from disk on every mint, so as long as the desktop app keeps
-`auth-v2.dat` fresh the plugin keeps working without re-login. Nothing is ever written to QwenWork
+`auth-v2.dat` fresh the plugin keeps working without re-login. A disk session is trusted while it
+has more than 5 minutes of validity left; adoption during sign-in requires 2 minutes, so a dying
+session always gets re-verified by a fresh mint. Nothing is ever written to QwenWork
 files, and the refresh-token flow is never called (the app owns it).
 
 ## Daily check-in
@@ -55,8 +57,8 @@ files, and the refresh-token flow is never called (the app owns it).
 The plugin exposes Magpie's optional `auth.checkin` hook, mapped to QwenWork's daily-credit-notice
 claim (`POST /api/v1/adapter/user/daily-credit-notice/claim`, costs nothing). Outcomes:
 `claimed` (`Claimed 20 credits`), `ineligible` (nothing offered today, or the endpoint is not
-served on this plan/deployment - the measured Free/global state, cached for the session so it is
-never retried), or `failed` (server/network trouble, including an expired sign-in, which asks for
+served on this plan/deployment - the measured Free/global state, cached for the host process
+lifetime so it is never retried), or `failed` (server/network trouble, including an expired sign-in, which asks for
 a re-login).
 
 ## How it works
@@ -97,6 +99,12 @@ web user-service that serves the per-credit wallet buckets). Tokens are never lo
 - `lang`: `auto`, `en` or `zh` for plugin-facing strings (follows `MAGPIE_LANG` by default).
 - `allowModelKeys`: restrict the exposed models to a list of catalog keys.
 - `debug`: also print plugin logs to stderr.
+
+Advanced, not exposed in the Options editor: `gatewayOrigin` (option; overrides the gateway origin
+for mint/catalog/quota/check-in - leave unset unless you run a mirror deployment, since it moves
+where credentials are sent; wallet buckets always come from `qwenwork.ai`), and the
+`QWENWORK_HOME` environment variable (points the credential reader at a different QwenWork data
+directory; `~` paths are expanded).
 
 ## Scripts
 

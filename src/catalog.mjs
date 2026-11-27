@@ -1,7 +1,6 @@
 import {
   CATALOG_PATH,
   CATALOG_TIMEOUT_MS,
-  CATALOG_TTL_MS,
   FALLBACK_MODELS,
   FORMAT_ANTHROPIC,
   FORMAT_OPENAI,
@@ -135,31 +134,6 @@ export function fallbackModels(baseModels = {}, { allowModelKeys = [] } = {}) {
   return modelsFromCatalog(fallbackEntries({ allowModelKeys }), baseModels);
 }
 
-export function createCatalogCache({
-  ttlMs = CATALOG_TTL_MS,
-  now = () => Date.now(),
-} = {}) {
-  const map = new Map();
-  return {
-    async get(key, fetcher, { force = false } = {}) {
-      const hit = map.get(key);
-      if (hit && !force && now() - hit.at < ttlMs) return hit.value;
-      const value = await fetcher();
-      map.set(key, { at: now(), value });
-      return value;
-    },
-    peek(key) {
-      return map.get(key)?.value;
-    },
-    clear() {
-      map.clear();
-    },
-    get size() {
-      return map.size;
-    },
-  };
-}
-
 export async function fetchCatalog(
   origin,
   token,
@@ -173,11 +147,4 @@ export async function fetchCatalog(
   const catalog = normalizeCatalog(payload);
   if (catalog.models.length === 0) throw new Error("empty catalog");
   return catalog;
-}
-
-export function catalogSummary(models) {
-  const anthropic = models.filter(
-    (model) => model.format === FORMAT_ANTHROPIC,
-  ).length;
-  return `${models.length} models (${models.length - anthropic} openai, ${anthropic} anthropic)`;
 }

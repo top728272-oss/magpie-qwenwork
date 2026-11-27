@@ -89,6 +89,10 @@ export function describeError(err, { lang = "zh" } = {}) {
   const vendor = upstream && !upstream.startsWith("<") ? upstream : "";
 
   if (code === "DESKTOP_MAAS_UNSUPPORTED") return t(lang, "errMintUnsupported");
+  if (code === "IDENTITY_UNSUPPORTED")
+    return t(lang, "errIdentityVersion", {
+      version: toNumber(err?.identityVersion, 0),
+    });
   if (code === "ACCESS_TOKEN_EXPIRED" || code === "ACCESS_TOKEN_INVALID")
     return t(lang, "errSignInExpired");
   if (status === 401) return t(lang, "errSignInExpired");

@@ -42,7 +42,6 @@ const MESSAGES = {
     usageKeyName: "MaaS 访问密钥",
     usageKeyLeft: "有效 {time}",
     usageKeyExpired: "已过期",
-    usageNoSession: "未读取到账号会话",
 
     checkinClaimed: "领取了 {credits} 积分",
     checkinNone: "今天没有可领取的每日积分",
@@ -93,7 +92,6 @@ const MESSAGES = {
     usageKeyName: "MaaS access key",
     usageKeyLeft: "valid for {time}",
     usageKeyExpired: "expired",
-    usageNoSession: "No account session was read",
 
     checkinClaimed: "Claimed {credits} credits",
     checkinNone: "No daily credit available today",

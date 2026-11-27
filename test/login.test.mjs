@@ -86,6 +86,24 @@ test("paste method fails on an invalid token", async () => {
   assert.match(result.error, /expired/);
 });
 
+test("adopt method fails fast on a multi-identity install", async () => {
+  const methods = createMethods({
+    options: { gatewayOrigin: GATEWAY, lang: "en" },
+    deps: {
+      fetchImpl: happyFetch(),
+      readDoc: async () => ({
+        ok: false,
+        tried: ["/x"],
+        reason: "identity-unsupported",
+        identityVersion: 3,
+      }),
+    },
+  });
+  const result = await methods[0].authorize({}, {});
+  assert.equal(result.type, "failed");
+  assert.match(result.error, /identityVersion 3/);
+});
+
 test("adopt method always hands back an auto flow and adopts a fresh session in the callback", async () => {
   const future = new Date(Date.now() + 3600_000).toISOString();
   const doc = makeAuthDoc({ token: makeJwt({}), expiresAt: future });

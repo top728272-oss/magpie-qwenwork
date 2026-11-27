@@ -216,7 +216,9 @@ export const QwenworkPlugin = async (input = {}, options = {}) => {
         timeoutMs: USAGE_TIMEOUT_MS,
       });
     } catch (err) {
-      return { outcome: "failed", message: describeError(err, { lang }) };
+      const out = { outcome: "failed", message: describeError(err, { lang }) };
+      if (err?.signIn === "expired") out.signIn = "expired";
+      return out;
     }
 
     const out = checkinOutcome(result, { lang });

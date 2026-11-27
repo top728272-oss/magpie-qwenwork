@@ -154,7 +154,7 @@ export function normalizeWalletTotals(payload) {
   const total = (raw) => {
     if (!raw || typeof raw !== "object") return null;
     const n = toNumber(raw.total_balance, Number.NaN);
-    return Number.isFinite(n) && n > 0 ? { balance: n, validTo: null } : null;
+    return Number.isFinite(n) ? { balance: n, validTo: null } : null;
   };
   const buckets = {
     daily: total(payload.data.daily_credits),
@@ -203,7 +203,7 @@ export async function fetchUserWallets(
     return { ok: false, permanent: true };
   } catch (err) {
     const status = toNumber(err?.status, 0);
-    if (status === 404 || status === 403) return { ok: false, permanent: true };
+    if (status === 404) return { ok: false, permanent: true };
     return { ok: false, permanent: false, error: String(err?.message ?? err) };
   }
 }

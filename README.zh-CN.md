@@ -48,7 +48,7 @@ magpie plugin add magpie-qwenwork       # npm（发布后）
 插件实现了 Magpie 的可选 `auth.checkin` 钩子，对应 QwenWork 的每日积分领取
 （`POST /api/v1/adapter/user/daily-credit-notice/claim`，不消耗积分）。结果：`claimed`
 （`领取了 20 积分`）、`ineligible`（今天无可领额度，或当前套餐/部署不提供该端点 - 实测的
-Free/国际区状态，会按会话缓存，不再重试）、`failed`（服务端/网络故障，含登录过期，会提示重新
+Free/国际区状态，按宿主进程生命周期缓存，不再重试）、`failed`（服务端/网络故障，含登录过期，会提示重新
 登录）。
 
 ## 工作原理
@@ -83,6 +83,11 @@ Free/国际区状态，会按会话缓存，不再重试）、`failed`（服务�
 - `lang`：`auto` / `en` / `zh`（默认跟随 `MAGPIE_LANG`）。
 - `allowModelKeys`：只暴露指定的模型 key 列表。
 - `debug`：同时把插件日志打印到 stderr。
+
+高级（不在 Options 编辑器中暴露）：`gatewayOrigin`（选项；覆盖 mint/目录/额度/签到的网关来源，
+除非你在使用镜像部署，否则请保持默认——它会改变凭据发送目标；积分钱包桶始终来自
+`qwenwork.ai`），以及 `QWENWORK_HOME` 环境变量（让凭据读取器指向其他 QwenWork 数据目录，支持
+`~` 路径）。
 
 ## 脚本
 

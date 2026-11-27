@@ -95,6 +95,45 @@ test("sessionToken falls back to the stored key when the disk token is stale", a
   assert.equal(session.source, "stored");
 });
 
+test("sessionToken reports a multi-identity install with the dedicated error", async () => {
+  const doc = makeAuthDoc({
+    expiresAt: new Date(NOW + 3600_000).toISOString(),
+  });
+  const sessions = createSessionStore({
+    options: { gatewayOrigin: GATEWAY, lang: "en" },
+    deps: {
+      fetchImpl: fakeFetch(() => mintResponse()),
+      now: () => NOW,
+      readDoc: async () => ({
+        ok: false,
+        path: `${DIR}/auth-v2.dat`,
+        reason: "identity-unsupported",
+        identityVersion: 2,
+      }),
+      env: {},
+      home: "/h",
+    },
+  });
+  const settings = {
+    mode: "adopt",
+    gatewayOrigin: GATEWAY,
+    dataDir: DIR,
+    key: "",
+    email: "",
+    plan: "",
+  };
+  await assert.rejects(
+    () => sessions.sessionToken(settings),
+    (err) => {
+      assert.equal(err.signIn, "expired");
+      assert.equal(err.code, "IDENTITY_UNSUPPORTED");
+      assert.equal(err.identityVersion, 2);
+      assert.match(err.message, /identityVersion 2/);
+      return true;
+    },
+  );
+});
+
 test("sessionToken throws a sign-in error with no usable token", async () => {
   const stale = makeJwt({ exp: Math.floor(NOW / 1000) - 60 });
   const doc = makeAuthDoc({

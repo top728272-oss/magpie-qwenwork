@@ -98,6 +98,7 @@ test("checkinOutcome maps auth and server failures", () => {
     outcome: "failed",
     message:
       "The QwenWork sign-in expired. Sign in to the desktop app again, then re-authorize.",
+    signIn: "expired",
   });
   assert.deepEqual(checkinOutcome({ ok: false, status: 502 }, { lang: "en" }), {
     outcome: "failed",

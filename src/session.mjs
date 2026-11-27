@@ -82,6 +82,17 @@ export function createSessionStore({ options = {}, deps = {} } = {}) {
     }
 
     const found = await readState(settings, { force });
+    if (found.reason === "identity-unsupported") {
+      const err = new Error(
+        t(lang, "errIdentityVersion", { version: found.identityVersion ?? 0 }),
+      );
+      err.name = "SignInError";
+      err.status = 401;
+      err.signIn = "expired";
+      err.code = "IDENTITY_UNSUPPORTED";
+      err.identityVersion = found.identityVersion ?? 0;
+      throw err;
+    }
     if (
       found.ok &&
       isFresh(found.state.expiresAt, SESSION_FRESH_MARGIN_MS, now())

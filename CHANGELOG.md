@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.1 - 2026-11-27
+
+### Fixed
+
+- Multi-identity installs (`identityVersion > 0`) now surface the dedicated
+  "multi-identity installs are not supported" message from the session path and the adopt sign-in,
+  instead of a generic cannot-parse error; the unused `usageNoSession` string is removed.
+- The daily check-in marks an expired sign-in with a `signIn: "expired"` signal, per the handoff
+  contract, instead of returning a plain failure.
+- Wallet buckets: a 403 no longer permanently disables the wallet source (404 still does), and a
+  genuinely emptied bucket now renders as a `0 credits` window instead of vanishing.
+- E2E artifacts mask the account email inside the recorded usage card.
+
+### Added
+
+- README documents the advanced `gatewayOrigin` option and the `QWENWORK_HOME` environment
+  variable, the freshness margins (5 minutes for reads, 2 minutes for adoption), and the
+  per-process lifetime of the wallet/check-in caches.
+
+### Removed
+
+- Dead code: `modelIdFromBody`, `createCatalogCache`, `catalogSummary`.
+
 ## 0.3.0 - 2026-11-27
 
 ### Added
