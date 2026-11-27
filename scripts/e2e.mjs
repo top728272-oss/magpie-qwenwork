@@ -51,7 +51,9 @@ function record(name, ok, detail, extra = {}) {
 }
 
 const hooks = await QwenworkPlugin({ magpie: { options: { lang: "en" } } }, {});
-const login = await hooks.auth.methods[0].authorize({}, {});
+const flow = await hooks.auth.methods[0].authorize({}, {});
+const login =
+  flow?.type === "success" ? flow : await flow?.callback?.(undefined, {});
 
 if (login?.type !== "success") {
   console.error(`login failed: ${login?.error ?? "unknown error"}`);

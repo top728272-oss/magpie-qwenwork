@@ -10,7 +10,9 @@ test(
   { skip: enabled ? false : "set QWENWORK_E2E=1 to run the live gateway test" },
   async () => {
     const hooks = await QwenworkPlugin({}, { lang: "en" });
-    const login = await hooks.auth.methods[0].authorize({}, {});
+    const flow = await hooks.auth.methods[0].authorize({}, {});
+    assert.equal(flow.method, "auto");
+    const login = await flow.callback(undefined, {});
     assert.equal(login.type, "success", login?.error);
 
     const auth = {

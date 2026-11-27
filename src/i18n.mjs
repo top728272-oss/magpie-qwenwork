@@ -8,7 +8,7 @@ const MESSAGES = {
     promptSessionToken: "QwenWork 会话令牌（auth-v2.dat 中的 token）",
 
     adoptInstructions:
-      "在 QwenWork 桌面应用里完成登录。登录成功后这里会自动继续；若应用没有打开，请从刚打开的页面安装并登录 QwenWork。",
+      "在 QwenWork 桌面应用里完成登录，登录后这里会自动继续。若应用已经登录，几秒内就会完成；若应用没有打开，请从刚打开的页面安装并登录 QwenWork。",
     errAdoptTimeout: "等待 QwenWork 登录超时，请重试。",
 
     errKeyMissing: "缺少 QwenWork 会话令牌。",
@@ -46,7 +46,7 @@ const MESSAGES = {
     promptSessionToken: "QwenWork session token (the token in auth-v2.dat)",
 
     adoptInstructions:
-      "Finish the sign-in in the QwenWork desktop app. This dialog continues automatically once the app is signed in. If QwenWork did not open, install it from the page that just opened, then sign in.",
+      "Finish the sign-in in the QwenWork desktop app; this continues automatically. If the app is already signed in, it finishes within seconds. If QwenWork did not open, install it from the page that just opened, then sign in.",
     errAdoptTimeout: "Timed out waiting for the QwenWork sign-in. Please retry.",
 
     errKeyMissing: "The QwenWork session token is missing.",

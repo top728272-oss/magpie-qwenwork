@@ -2,6 +2,14 @@
 
 ## 0.1.0 - 2026-11-27
 
+### Fixed
+
+- The adopt method always returns the auto sign-in flow instead of an immediate success: the magpie
+  host requires every oauth sign-in to hand back a callback (`gave nothing to finish it with`
+  otherwise). The callback now adopts any fresh session that verifies by mint, so an already signed
+  in desktop app completes in seconds; a token that fails verification is re-checked only when its
+  value changes, never on every poll.
+
 ### Added
 
 - Initial release. Provider id `qwenwork`, zero runtime dependencies, plain ESM, no build step.
@@ -28,3 +36,7 @@
   call 200 -> Anthropic messages 200 -> usage `694.99 remaining` -> mint meter `valid for 1h 59m`.
   Artifact: `artifacts/e2e-2026-11-27T17-25-36-767Z.md`.
 - The same auth-v2.dat token hash decrypts under node (PowerShell DPAPI) and bun (bun:ffi).
+- Acceptance in real Magpie 0.1.4975: `magpie plugin add D:\projects\magpie-qwenwork` lists
+  `qwenwork (QwenWork, 9 models)`; `magpie plugin login qwenwork 1` (adopt) signs in and both model
+  families stream through the gateway (`qwenwork/qwen3.8-flash` and `qwenwork/minimax-m3.1-flash`
+  answered a streaming "pong"); `magpie plugin options` shows the declared options.

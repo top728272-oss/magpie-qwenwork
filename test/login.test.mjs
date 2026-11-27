@@ -80,7 +80,7 @@ test("paste method fails on an invalid token", async () => {
   assert.match(result.error, /expired/);
 });
 
-test("adopt method signs in immediately when a fresh session exists", async () => {
+test("adopt method always hands back an auto flow and adopts a fresh session in the callback", async () => {
   const future = new Date(Date.now() + 3600_000).toISOString();
   const doc = makeAuthDoc({ token: makeJwt({}), expiresAt: future });
   const methods = createMethods({
@@ -98,31 +98,23 @@ test("adopt method signs in immediately when a fresh session exists", async () =
   const adopt = methods[0];
   assert.equal(adopt.type, "oauth");
 
-  const result = await adopt.authorize({}, {});
-  assert.equal(result.type, "success");
-  assert.equal(result.metadata.mode, "adopt");
-  assert.equal(result.metadata.email, "user@example.com");
-});
-
-test("adopt method hands back an auto flow when no session is available", async () => {
-  const methods = createMethods({
-    options: { gatewayOrigin: GATEWAY, lang: "en" },
-    deps: {
-      fetchImpl: happyFetch(),
-      readDoc: async () => ({ ok: false, tried: ["/data/QwenWork/auth-v2.dat"] }),
-    },
-  });
-  const flow = await methods[0].authorize({}, {});
+  const flow = await adopt.authorize({}, {});
   assert.equal(flow.url, "https://qwenwork.ai");
   assert.equal(flow.method, "auto");
   assert.match(flow.instructions, /QwenWork/);
   assert.equal(typeof flow.callback, "function");
+
+  const result = await flow.callback();
+  assert.equal(result.type, "success");
+  assert.equal(result.metadata.mode, "adopt");
+  assert.equal(result.metadata.email, "user@example.com");
+  assert.equal(result.metadata.plan, "Free");
 });
 
 test("adopt callback adopts the session that appears on disk", async () => {
   const past = new Date(Date.now() - 600_000).toISOString();
   const future = new Date(Date.now() + 3600_000).toISOString();
-  let current = { ok: true, path: "/x", doc: makeAuthDoc({ token: "old-token", expiresAt: past }), state: { token: "old-token", expiresAt: Date.parse(past), email: "", plan: "", authRealm: "", identityVersion: 0 } };
+  let current = { ok: false, tried: ["/x"] };
   const methods = createMethods({
     options: { gatewayOrigin: GATEWAY, lang: "en" },
     deps: {
@@ -141,7 +133,31 @@ test("adopt callback adopts the session that appears on disk", async () => {
   assert.equal(result.metadata.mode, "adopt");
 });
 
-test("adopt callback times out when nothing changes", async () => {
+test("waitForAuthDocument verifies an unchanged invalid token only once", async () => {
+  const future = new Date(Date.now() + 3600_000).toISOString();
+  let verifications = 0;
+  const readDoc = async () => ({
+    ok: true,
+    path: "/x",
+    doc: makeAuthDoc({ token: "bad-token", expiresAt: future }),
+    state: { token: "bad-token", expiresAt: Date.parse(future), email: "", plan: "", authRealm: "", identityVersion: 0 },
+  });
+  const result = await waitForAuthDocument({
+    explicitDir: "",
+    pollMs: 10,
+    timeoutMs: 60,
+    lang: "en",
+    readDoc,
+    verify: async () => {
+      verifications += 1;
+      return { ok: false, error: "nope" };
+    },
+  }).catch((err) => err);
+  assert.match(String(result?.message ?? result), /Timed out/);
+  assert.equal(verifications, 1);
+});
+
+test("adopt callback times out when the session never becomes valid", async () => {
   const past = new Date(Date.now() - 600_000).toISOString();
   const methods = createMethods({
     options: { gatewayOrigin: GATEWAY, lang: "en" },

@@ -36,8 +36,6 @@ export function authState(found) {
 
 export async function waitForAuthDocument({
   explicitDir = "",
-  baselineToken = "",
-  baselineExpiresAt = 0,
   timeoutMs = ADOPT_WAIT_MS,
   pollMs = ADOPT_POLL_MS,
   signal,
@@ -46,22 +44,24 @@ export async function waitForAuthDocument({
   readDoc = readAuthDocument,
   env = process.env,
   home,
+  verify,
   onPoll,
 } = {}) {
   const deadline = now() + timeoutMs;
+  let lastTried = "";
+  let triedOk = false;
 
   while (now() < deadline) {
     if (signal?.aborted) throw new Error("cancelled");
 
     const found = await readDoc({ explicitDir, env, home });
-    if (found.ok) {
-      const state = authState(found);
-      const changed =
-        state.token !== baselineToken ||
-        state.expiresAt > baselineExpiresAt + 60_000;
-      if (changed && isFresh(state.expiresAt, ADOPT_FRESH_MARGIN_MS, now())) {
-        return found;
+    if (found.ok && isFresh(found.state.expiresAt, ADOPT_FRESH_MARGIN_MS, now())) {
+      const token = found.state.token;
+      if (token !== lastTried) {
+        lastTried = token;
+        triedOk = verify ? (await verify(token)).ok : true;
       }
+      if (triedOk) return found;
     }
     onPoll?.(found);
 
@@ -89,23 +89,6 @@ function adoptMethod({ options, lang, fetchImpl, deps = {} }) {
     label: t(lang, "loginAdopt"),
     async authorize(_inputs, { signal } = {}) {
       const explicitDir = options.dataDir;
-      const current = await readDoc({ explicitDir, env, home });
-      const state = authState(current);
-
-      if (state.token && isFresh(state.expiresAt, ADOPT_FRESH_MARGIN_MS, now())) {
-        const verified = await verifySessionToken(origin, state.token, {
-          fetchImpl,
-          lang,
-        });
-        if (verified.ok) {
-          return successResult({
-            token: state.token,
-            email: state.email || verified.context?.email || "",
-            plan: state.plan || verified.context?.plan || "",
-            mode: MODE_ADOPT,
-          });
-        }
-      }
 
       return {
         url: "https://qwenwork.ai",
@@ -115,8 +98,6 @@ function adoptMethod({ options, lang, fetchImpl, deps = {} }) {
           try {
             const found = await waitForAuthDocument({
               explicitDir,
-              baselineToken: state.token,
-              baselineExpiresAt: state.expiresAt,
               signal: callbackSignal ?? signal,
               timeoutMs: waitMs,
               lang,
@@ -125,6 +106,8 @@ function adoptMethod({ options, lang, fetchImpl, deps = {} }) {
               readDoc,
               env,
               home,
+              verify: (token) =>
+                verifySessionToken(origin, token, { fetchImpl, lang }),
             });
             const next = authState(found);
             const verified = await verifySessionToken(origin, next.token, {
