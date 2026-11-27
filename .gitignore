@@ -9,5 +9,5 @@ state*.json
 AGENTS.md
 files
 handoff.md
-docs
-tools
+docs/
+tools/
